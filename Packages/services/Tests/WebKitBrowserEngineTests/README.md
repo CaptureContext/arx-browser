@@ -1,0 +1,7 @@
+# WebKitBrowserEngineTests
+
+Covers `ContentRuleConverter` (anchors, separators, options, domains, exceptions, element hiding and what's left out), the WebKit data store identifiers and download names, and `PageEngineRouter` against a recording Chromium client: which engine a tab opens in, moves on typed addresses, Back from WebKit's first entry, cookie time limits, refused moves and closing, and (DEV-1000) Chromium pages that reach a listed site through a same-site link or ask for protected media there, pages kept in Chromium until they leave the site, a refusing page asked once, and WebKit pages off. Pages load nothing from the network; real playback is checked by hand.
+
+`WebKitPageMenuTests` (DEV-1199) builds menus shaped like WebKit's (items by `WKMenuItemIdentifier…`) and checks Arx's page items in place of WebKit's Back, Forward and Reload, only the commands the host allows, no Cast or Translate, link, image and selection menus left alone, a video's menu keeping its items with the page items before Inspect Element, Exit Full Screen first in full screen, a choice reaching the app with its tab, Inspect Element following developer mode on every page, and the HTML of a web archive's main resource.
+
+`WebKitPagesDataTests`: removing a profile closes its pages before its store goes, clearing makes no store for a profile WebKit never stored (ordinary or private) and uses one on disk, and the live store calls complete for a store nobody made. Tests use non-persistent stores (`WebKitDataStores.inMemory`), so they write no stores under `~/Library/WebKit`.

@@ -1,0 +1,546 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSAppleEventsUsageDescription" : {
+      "comment" : "macOS asks whether Arx may control another app (Automation).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx übergibt App-Links, etwa Anmelderückrufe, an die App, die du für dieses Profil ausgewählt hast."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx hands app links, such as sign-in callbacks, to the app you chose for this profile."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx entrega los enlaces de apps, como las respuestas de inicio de sesión, a la app que has elegido para este perfil."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx transmet les liens d’app, tels que les rappels de connexion, à l’app que vous avez choisie pour ce profil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arxは、サインインのコールバックなどのAppのリンクを、このプロファイルに選択したAppに渡します。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx przekazuje łącza do aplikacji, takie jak wywołania zwrotne logowania, aplikacji wybranej dla tego profilu."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx передает ссылки приложений, например обратные вызовы для входа, приложению, которое Вы выбрали для этого профиля."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx передає посилання на програми, як-от зворотні виклики входу, програмі, яку ви вибрали для цього профілю."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx 会将 App 链接（如登录回调）交给你为此用户场景选取的 App。"
+          }
+        }
+      }
+    },
+    "NSAudioCaptureUsageDescription" : {
+      "comment" : "macOS asks whether Arx may capture system audio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx Audio aufnehmen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can capture audio in Arx."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden capturar audio en Arx."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent capturer l’audio dans Arx."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、Arxでオーディオをキャプチャできます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą przechwytywać dźwięk w Arx."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут записывать звук в Arx."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть записувати звук в Arx."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中捕获音频。"
+          }
+        }
+      }
+    },
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use Bluetooth.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx Bluetooth verwenden, zum Beispiel um dich mit einem Passkey auf deinem iPhone anzumelden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use Bluetooth in Arx, for example to sign in with a passkey on your phone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar Bluetooth en Arx, por ejemplo, para iniciar sesión con una llave de acceso en tu móvil."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser le Bluetooth dans Arx, par exemple pour se connecter avec une clé d’accès sur votre téléphone."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、ArxでBluetoothを使用できます。たとえば、iPhoneのパスキーでサインインできます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Bluetooth w Arx, na przykład do logowania kluczem dostępu na telefonie."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать Bluetooth в Arx, например для входа с помощью ключа входа на Вашем телефоне."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати Bluetooth в Arx, наприклад для входу за допомогою ключа допуску на вашому телефоні."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用蓝牙，例如使用手机上的通行密钥登录。"
+          }
+        }
+      }
+    },
+    "NSBluetoothPeripheralUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use Bluetooth.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx Bluetooth verwenden, zum Beispiel um dich mit einem Passkey auf deinem iPhone anzumelden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use Bluetooth in Arx, for example to sign in with a passkey on your phone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar Bluetooth en Arx, por ejemplo, para iniciar sesión con una llave de acceso en tu móvil."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser le Bluetooth dans Arx, par exemple pour se connecter avec une clé d’accès sur votre téléphone."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、ArxでBluetoothを使用できます。たとえば、iPhoneのパスキーでサインインできます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Bluetooth w Arx, na przykład do logowania kluczem dostępu na telefonie."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать Bluetooth в Arx, например для входа с помощью ключа входа на Вашем телефоне."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати Bluetooth в Arx, наприклад для входу за допомогою ключа допуску на вашому телефоні."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用蓝牙，例如使用手机上的通行密钥登录。"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use the camera.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx deine Kamera verwenden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use your camera in Arx."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar tu cámara en Arx."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser votre caméra dans Arx."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、Arxでカメラを使用できます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Twojej kamery w Arx."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать камеру в Arx."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати вашу камеру в Arx."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用你的摄像头。"
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "macOS asks whether Arx may find devices on the local network.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx findet Chromecasts und andere Geräte in deinem lokalen Netzwerk, auf die gestreamt werden kann, und Websites, die du erlaubst, können Geräte darin erreichen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx finds Chromecasts and other devices to cast to on your local network, and websites you allow can reach devices on it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx encuentra Chromecasts y otros dispositivos a los que enviar contenido en tu red local, y los sitios web que permitas pueden acceder a los dispositivos de esa red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx détecte les Chromecast et autres appareils de diffusion sur votre réseau local, et les sites web que vous autorisez peuvent accéder aux appareils de ce réseau."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arxは、ローカルネットワーク上のChromecastやキャスト先のデバイスを検出します。許可したウェブサイトも、ローカルネットワーク上のデバイスにアクセスできます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx znajduje w Twojej sieci lokalnej Chromecasty i inne urządzenia do przesyłania, a witryny, na które pozwolisz, mogą docierać do urządzeń w tej sieci."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx находит устройства Chromecast и другие устройства для трансляции в Вашей локальной сети, а веб-сайты, которым Вы разрешите, смогут обращаться к устройствам в ней."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx знаходить Chromecast та інші пристрої для трансляції у вашій локальній мережі, а вебсайти, яким ви дозволите, можуть звертатися до пристроїв у ній."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arx 会在你的本地网络上查找 Chromecast 和其他可投放的设备，你允许的网站也可以访问其中的设备。"
+          }
+        }
+      }
+    },
+    "NSLocationUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use Location Services.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx deinen Standort verwenden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use your location in Arx."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar tu ubicación en Arx."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser votre position dans Arx."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、Arxで位置情報を使用できます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Twojego położenia w Arx."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать Вашу геопозицию в Arx."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати ваше місцезнаходження в Arx."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用你的位置信息。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use the microphone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx dein Mikrofon verwenden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use your microphone in Arx."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar tu micrófono en Arx."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser votre micro dans Arx."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、Arxでマイクを使用できます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Twojego mikrofonu w Arx."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать микрофон в Arx."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати ваш мікрофон в Arx."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用你的麦克风。"
+          }
+        }
+      }
+    },
+    "NSWebBrowserPublicKeyCredentialUsageDescription" : {
+      "comment" : "macOS asks whether Arx may use the person's passkeys.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites, die du erlaubst, können in Arx deine Passkeys verwenden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Websites you allow can use your passkeys in Arx."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los sitios web que permitas pueden usar tus llaves de acceso en Arx."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sites web que vous autorisez peuvent utiliser vos clés d’accès dans Arx."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可したウェブサイトは、Arxでパスキーを使用できます。"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witryny, na które pozwolisz, mogą używać Twoich kluczy dostępu w Arx."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-сайты, которым Вы разрешите, смогут использовать Ваши ключи входа в Arx."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вебсайти, яким ви дозволите, можуть використовувати ваші ключі допуску в Arx."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你允许的网站可以在 Arx 中使用你的通行密钥。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

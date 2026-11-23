@@ -1,0 +1,17 @@
+# BrowserHistoryClient
+
+Serial, local browsing metadata storage in separate files for each profile. It stores up to 2,000 distinct HTTP(S) URLs per profile, preserving exact query and fragment values while excluding URLs with user information. Titles and URL size are bounded. The feature host excludes private and temporary pages.
+
+Atomic writes preserve previous bytes on failure. Failed writes retain the latest in-memory snapshot and expose a retryable failure. Revisioned outcomes reject stale UI responses. Corrupt, foreign-profile, future-version and externally modified files are not silently overwritten; explicit profile-scoped Clear History can reset that profile. History does not participate in workspace Undo or workspace export, and logs never include URL or title values.
+
+Profile removal clears its cached/file history and tombstones the identity for the store lifetime, rejecting delayed recording tasks. Cancelled record tasks are rejected before mutating the actor’s cache.
+
+Titles are capped at 4 KiB of UTF-8 without splitting a Unicode scalar, and storage additionally trims the oldest entries if encoded history exceeds 80 MB. Explicit Clear can replace an unreadable or oversized profile file atomically; ordinary writes continue to preserve unexpected external edits.
+
+`clearSince` (DEV-647) removes a profile's entries last visited at or after a moment and writes at once, for Clear Browsing Data with a time range. Unlike `clear`, it needs readable history, since older entries are kept.
+
+`removeEntries` (DEV-810) removes chosen entries or every entry from one site, last visited at or before the moment the removal was asked for, (`BrowsingHistoryRemoval`, defined in BrowserCore) and writes at once. The command bar's Delete from History uses it through AppFeature's ProfileHistory, and a History page can share the same path. Like `clearSince`, it needs readable history. The store remembers what each removal took and when, so a visit from before it that reaches the store afterwards (a record already on its way) doesn't bring the page back; a later visit does.
+
+`BrowserHistoryDatabaseStore` (DEV-984) keeps history in `arx-history.sqlite` (the `HistoryDatabase` target) while the `ARX_SQLITE_WORKSPACE` feature flag is on, with the same behavior: every change is written at once as row changes, a revision per profile reports another writer as `changedOnDisk`, and Clear History replaces whatever a profile had. A profile's JSON file moves in, in one transaction, the first time its history is read, and is left as it was, so turning the flag off returns to it (as it was then); an unreadable file fails as before until Clear History replaces it. What Delete from History and the clears take is kept as rules in the database, so a visit they cover doesn't come back later, from a late record or from another Mac. With iCloud History sync on, writes also keep the sync mirror, and `applySynced` takes other Macs' mirrored visits and clears into this Mac's history for the profiles it knows. Removing a profile deletes its history here and its JSON file.
+
+`moveProfile(_:_:)` (DEV-1216) moves a merged profile's history to the kept profile: its entries merge in as an import's do (one per page, within the history limit), then its own history goes. The database store also moves its removal rules (`HistoryDatabase.moveRemovals`) and answers for the kept profile at the next `applySynced`; the JSON store deletes the merged profile's file once the kept one's is saved.

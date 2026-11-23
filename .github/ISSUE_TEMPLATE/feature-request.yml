@@ -1,0 +1,30 @@
+name: Feature request
+description: Something Arx doesn't do yet, or should do differently.
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a question, or an idea that isn't settled yet, start a discussion instead. Search the existing issues first and add to one that matches.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to do
+      description: The task or the problem, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: How you'd like Arx to handle it. A sketch or a screenshot is welcome.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do now
+      description: Workarounds, or how another browser handles it.
+  - type: input
+    id: arx-version
+    attributes:
+      label: Arx version
+      description: Arx menu › About Arx.

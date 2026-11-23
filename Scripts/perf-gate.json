@@ -1,0 +1,8 @@
+{
+  "cold_launch_s": {"relative": 0.10, "absolute": 0.10},
+  "warm_launch_s": {"relative": 0.10, "absolute": 0.05},
+  "tab_switch_ms": {"relative": 0.15, "absolute": 15},
+  "memory_1_tab_mb": {"relative": 0.10, "absolute": 25},
+  "memory_20_tabs_mb": {"relative": 0.10, "absolute": 75},
+  "idle_cpu_percent": {"relative": 0.50, "absolute": 0.5}
+}

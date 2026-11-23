@@ -1,0 +1,243 @@
+targets:
+  ArxMCP:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Sources/ArxMCP
+        excludes: [README.md]
+    settings:
+      base:
+        PRODUCT_NAME: ArxMCP
+        SKIP_INSTALL: true
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
+        ENABLE_HARDENED_RUNTIME: true
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: true
+    dependencies:
+      - package: automation-services
+        product: ArxCommandLine
+  # DEV-1144: Arx's FairPlay helper, an LSUIElement app in Contents/Helpers that plays a
+  # Chromium tab's FairPlay audio (Spotify) and owns Now Playing while it does. Sandboxed with
+  # outgoing network only; FairPlay Streaming needs no entitlement.
+  ArxFairPlay:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/ArxFairPlay
+        excludes: [README.md]
+    settings:
+      base:
+        PRODUCT_NAME: ArxFairPlay
+        # The app's bundle ID plus .FairPlay; make run and make run-preview pass their own
+        # ARX_BUNDLE_ID to every target.
+        PRODUCT_BUNDLE_IDENTIFIER: $(ARX_BUNDLE_ID).FairPlay
+        ARX_BUNDLE_ID: dev.capturecontext.arx
+        # Now Playing names the helper; it reads as the app it plays for.
+        INFOPLIST_KEY_CFBundleDisplayName: $(ARX_DISPLAY_NAME)
+        INFOPLIST_KEY_LSUIElement: true
+        GENERATE_INFOPLIST_FILE: true
+        ARX_DISPLAY_NAME: Arx
+        CODE_SIGN_ENTITLEMENTS: Distribution/Entitlements/fairplay-helper.plist
+        SKIP_INSTALL: true
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
+        ENABLE_HARDENED_RUNTIME: true
+        ENABLE_APP_SANDBOX: true
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: true
+      configs:
+        Debug:
+          ARX_BUNDLE_ID: dev.capturecontext.arx.dev
+          ARX_DISPLAY_NAME: Arx Dev
+    dependencies:
+      - package: automation-services
+        product: FairPlayPlayer
+  Arx:
+    type: application
+    platform: macOS
+    sources:
+      - path: Containers/macOS
+        excludes:
+          - README.md
+    info:
+      path: Containers/macOS/Info.plist
+      properties:
+        CFBundleDisplayName: $(ARX_DISPLAY_NAME)
+        CFBundleName: $(ARX_DISPLAY_NAME)
+        # Languages (DEV-1291): macOS runs the app, its packages' bundles, AppKit, Sparkle and the
+        # engine in a language the main bundle lists here. Keep it English plus the languages
+        # Localization/languages.json ships; make check fails when the two differ.
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, de, es, fr, ja, pl, ru, uk, zh-Hans]
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.productivity
+        # AppleScript dictionary (DEV-909).
+        NSAppleScriptEnabled: true
+        OSAScriptingDefinition: Arx.sdef
+        NSPrincipalClass: BrowserCrApplication
+        # Arx Dev (DEV-1013): Chromium keeps its own data (Crashpad, native messaging hosts) in
+        # ~/Library/Application Support/<CrProductDirName>, and the engine names the Safe Storage
+        # Keychain item after these two, so Arx Dev never touches the installed Arx's.
+        CrProductDirName: $(ARX_DATA_FOLDER)
+        # The app's own data folder in ~/Library/Application Support and its agents' folder
+        # (ArxEdition): the bundle ID and the name, except make run-preview's own pair.
+        ArxDataFolder: $(ARX_DATA_FOLDER)
+        ArxSupportName: $(ARX_SUPPORT_NAME)
+        # Apple's web sign-in for the identity card's member number (DEV-1313): the Services ID,
+        # "dev.capturecontext.arx.auth". Empty leaves Apple out of the sign-in.
+        ArxAppleServicesID: $(ARX_APPLE_SERVICES_ID)
+        ArxStorageKeyService: $(ARX_STORAGE_KEY_SERVICE)
+        ArxStorageKeyAccount: $(ARX_STORAGE_KEY_ACCOUNT)
+        # Sparkle (DEV-859). Both come from build settings below; an empty or placeholder value
+        # keeps the updater off, as do Debug, unsigned and automated builds.
+        SUFeedURL: $(ARX_UPDATE_FEED_URL)
+        SUPublicEDKey: $(ARX_UPDATE_PUBLIC_ED_KEY)
+        # Update channels (DEV-888): the Beta channel's feed, and the channel this build was
+        # released on, used until the person picks one in Settings › General.
+        ArxBetaFeedURL: $(ARX_UPDATE_BETA_FEED_URL)
+        ArxUpdateChannel: $(ARX_UPDATE_CHANNEL)
+        # Crash reports and Report a Problem (DEV-887): the feedback relay. Empty: nothing is
+        # ever sent, crash reports stay on the Mac and reports can only be saved to a file.
+        NSAppleEventsUsageDescription: Arx hands app links, such as sign-in callbacks, to the app you chose for this profile.
+        NSCameraUsageDescription: Websites you allow can use your camera in Arx.
+        NSMicrophoneUsageDescription: Websites you allow can use your microphone in Arx.
+        NSLocationUsageDescription: Websites you allow can use your location in Arx.
+        # Chromium asks macOS for these too (DEV-861). Without a description macOS terminates
+        # Arx: a passkey sign-in checks the Bluetooth adapter for phone sign-in, for example.
+        # Keep in sync with chrome/tools/build/mac/infoplist_strings_util.cc.
+        NSAudioCaptureUsageDescription: Websites you allow can capture audio in Arx.
+        NSBluetoothAlwaysUsageDescription: Websites you allow can use Bluetooth in Arx, for example to sign in with a passkey on your phone.
+        NSBluetoothPeripheralUsageDescription: Websites you allow can use Bluetooth in Arx, for example to sign in with a passkey on your phone.
+        NSLocalNetworkUsageDescription: Arx finds Chromecasts and other devices to cast to on your local network, and websites you allow can reach devices on it.
+        # Cast (DEV-927): the Media Router browses for Chromecasts with Bonjour. Keep in step
+        # with Scripts/core/privacy.py BONJOUR_SERVICES.
+        NSBonjourServices: [_googlecast._tcp]
+        NSWebBrowserPublicKeyCredentialUsageDescription: Websites you allow can use your passkeys in Arx.
+        CFBundleURLTypes:
+          - CFBundleURLName: Web URLs
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes: [http, https]
+          # arx://open, arx://little and arx://space for the Shortcuts app, Raycast and
+          # scripts (DEV-929), and arx://settings/… for Settings at its place (DEV-1193).
+          # Arx's other arx:// pages never open from outside.
+          - CFBundleURLName: Arx automation
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes: [arx]
+          # arc:// links (DEV-1193). Arc is retiring, and it declares only arcBrowser, so macOS
+          # sends arc:// here even while Arc is installed: Arx opens its equivalent, and hands
+          # the rest to Arc. Arx declares no other browser's scheme, chrome:// included.
+          - CFBundleURLName: Arc links
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes: [arc]
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: dev.capturecontext.arx.sidebar-item
+            UTTypeDescription: Arx sidebar item
+            UTTypeConformsTo: [public.data]
+          - UTTypeIdentifier: dev.capturecontext.arx.sidebar-space
+            UTTypeDescription: Arx sidebar space
+            UTTypeConformsTo: [public.data]
+    entitlements:
+      path: Containers/macOS/Arx.entitlements
+      properties:
+        com.apple.security.network.client: true
+        com.apple.security.device.audio-input: true
+        com.apple.security.device.camera: true
+        com.apple.security.personal-information.location: true
+        # iCloud for sync (DEV-560). Signed builds need the matching provisioning profile;
+        # the build scripts pick Development or Production per signing identity. A signed
+        # Arx Dev without its profile drops these and push from the generated file (DEV-1013).
+        com.apple.developer.icloud-container-identifiers: [iCloud.dev.capturecontext.arx]
+        com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.icloud-container-environment: $(ARX_ICLOUD_ENVIRONMENT)
+        com.apple.developer.aps-environment: $(ARX_APS_ENVIRONMENT)
+    settings:
+      base:
+        PRODUCT_NAME: Arx
+        # Each of these is an ARX_ setting so make run and make run-preview can build Debug as
+        # Arx (DEV-1013's edition settings, overridden on xcodebuild's command line).
+        ASSETCATALOG_COMPILER_APPICON_NAME: $(ARX_APP_ICON)
+        ARX_APP_ICON: AppIcon
+        PRODUCT_BUNDLE_IDENTIFIER: $(ARX_BUNDLE_ID)
+        ARX_BUNDLE_ID: dev.capturecontext.arx
+        ARX_DISPLAY_NAME: Arx
+        ARX_DATA_FOLDER: $(PRODUCT_BUNDLE_IDENTIFIER)
+        ARX_SUPPORT_NAME: $(ARX_DISPLAY_NAME)
+        ARX_STORAGE_KEY_SERVICE: Arx Storage Key
+        ARX_STORAGE_KEY_ACCOUNT: Arx
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
+        PROVISIONING_PROFILE_SPECIFIER: $(ARX_PROVISIONING_PROFILE)
+        ARX_ICLOUD_ENVIRONMENT: Development
+        ARX_APS_ENVIRONMENT: development
+        # The appcast is a GitHub release asset of the Arx repository (make appcast's default
+        # --repository). GitHub serves release assets without credentials only once the
+        # repository is public.
+        ARX_UPDATE_FEED_URL: https://github.com/capturecontext/arx-browser/releases/latest/download/appcast.xml
+        # The EdDSA public key that generate_keys printed (22 November 2026). The private key
+        # stays in the release Mac's login keychain and is never committed. A fork that
+        # distributes builds sets its own; empty turns the updater off.
+        ARX_UPDATE_PUBLIC_ED_KEY: "R+5l8nbE928wxjw4YlEUpwCIQjh0arp/9kcaf+3jZlQ="
+        # The Beta channel's feed: the newest release of either channel, replaced on every
+        # release (make appcast --channel), next to the stable feed in the same repository.
+        ARX_UPDATE_BETA_FEED_URL: https://github.com/capturecontext/arx-browser/releases/download/beta-feed/appcast-beta.xml
+        # stable or beta. make dmg --channel beta builds a beta release.
+        ARX_UPDATE_CHANNEL: stable
+        # See ArxAppleServicesID above. Not a secret: it is public in every Apple sign-in URL.
+        # It comes from .env, so a fork's builds don't sign in as Arx; empty leaves Apple out.
+        ARX_APPLE_SERVICES_ID: ${ARX_APPLE_SERVICES_ID}
+        ENABLE_HARDENED_RUNTIME: true
+        ENABLE_APP_SANDBOX: false
+        ENABLE_USER_SCRIPT_SANDBOXING: false
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: true
+      configs:
+        # Arx Dev (DEV-1013): Debug builds (make run-dev, the smokes, Xcode) have their own bundle
+        # identifier, so their defaults, data and Keychain items never meet an installed Arx's.
+        # Its own icon and name tell them apart in the Dock, and it has no update feed.
+        Debug:
+          ENABLE_HARDENED_RUNTIME: false
+          ARX_BUNDLE_ID: dev.capturecontext.arx.dev
+          ARX_DISPLAY_NAME: Arx Dev
+          ARX_APP_ICON: AppIcon-Dev
+          ARX_STORAGE_KEY_SERVICE: Arx Dev Storage Key
+          ARX_STORAGE_KEY_ACCOUNT: Arx Dev
+          ARX_UPDATE_FEED_URL: ""
+          ARX_UPDATE_BETA_FEED_URL: ""
+        Release:
+          DEPLOYMENT_POSTPROCESSING: true
+          STRIP_INSTALLED_PRODUCT: true
+          STRIP_STYLE: all
+          DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+    postBuildScripts:
+      - name: Embed Chromium engine
+        script: |
+          cd "$SRCROOT"
+          /usr/bin/python3 -m Scripts.engine.embed
+        basedOnDependencyAnalysis: false
+    dependencies:
+      - target: ArxMCP
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
+      - target: ArxFairPlay
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
+      - package: application-package
+        product: Application
+schemes:
+  Arx:
+    build:
+      targets:
+        Arx: all
+    run:
+      config: Debug
+    archive:
+      config: Release

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "arx",
+  "title": "Arx",
+  "description": "Search Arx's tabs, open pages in a space and start Little Arx.",
+  "icon": "icon.png",
+  "author": "maximkrouk",
+  "categories": [
+    "Productivity",
+    "Web"
+  ],
+  "private": true,
+  "commands": [
+    {
+      "name": "search-tabs",
+      "title": "Search Tabs",
+      "description": "Find an open, pinned or Favorite tab in Arx and show it.",
+      "mode": "view"
+    },
+    {
+      "name": "open-in-space",
+      "title": "Open in Space",
+      "description": "Open a web page in an Arx space.",
+      "mode": "view"
+    },
+    {
+      "name": "new-little-arx",
+      "title": "New Little Arx",
+      "description": "Open a Little Arx window.",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "url",
+          "placeholder": "Page (optional)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.83.0",
+    "@raycast/utils": "^1.17.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint"
+  }
+}

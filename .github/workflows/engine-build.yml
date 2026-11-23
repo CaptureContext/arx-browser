@@ -1,0 +1,309 @@
+name: Engine build
+# The full engine bump on GitHub's hosted macOS runner (DEV-955): prepare Helium's tree for the
+# branch's engine.lock.json, build the engine, the app and the tests, run the checks that need no
+# display, publish the engine as a release asset, benchmark it against the default branch's
+# engine, and post the results to the pull request. A Chromium build needs about 100 GB of disk,
+# 16 GB of RAM and hours. A standard hosted macOS runner may have neither the disk nor the six
+# hours, and this job hasn't completed on one yet: until it does, build the engine locally with
+# make engine-build and make engine-cache, as DEVELOPMENT.md › Engine updates describes.
+#
+# It runs only on this repository's own branches: by hand (workflow_dispatch), or when someone
+# with write access labels a pull request `engine-build`. The job can write to the branch, so a
+# fork's code must never run in it, and two things keep it out (DEV-1281):
+# - pull_request_target takes this file from the default branch, so a pull request can't edit the
+#   guards. Both jobs refuse a pull request whose head isn't a branch of this repository.
+# - The gate job, on a GitHub-hosted runner, checks that whoever labelled or dispatched has write
+#   access (labelling alone needs only triage) and that the ref is a branch of this repository,
+#   not refs/pull/…, before the build job starts. See DEVELOPMENT.md › Public CI.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The branch to build, such as engine/helium-0.21.4.1
+        required: true
+        type: string
+      smokes:
+        description: Make targets for the checks that need no display
+        type: string
+        default: engine-smoke headless-smoke component-updates-smoke
+      benchmark:
+        description: Benchmark the new engine against the default branch's
+        type: boolean
+        default: true
+      cache:
+        description: Publish the engine and commit its manifest to the branch once the checks pass
+        type: boolean
+        default: true
+      fresh:
+        description: Start from a new Chromium tree, so the cached engine has only this revision's overlays
+        type: boolean
+        default: false
+  pull_request_target:
+    types: [labeled]
+permissions:
+  contents: read
+concurrency:
+  # One engine build at a time: the runner has room for one Chromium tree being built.
+  group: engine-build
+  cancel-in-progress: false
+jobs:
+  gate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'engine-build' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check who asked and what would build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+          REF: ${{ inputs.ref || github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::$HEAD_REPO isn't this repository; a fork's code never builds here."
+            exit 1
+          fi
+          permission="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$SENDER/permission" --jq .permission)"
+          case "$permission" in
+            admin|write) ;;
+            *) echo "::error::$SENDER has $permission access; an engine build needs write access."; exit 1 ;;
+          esac
+          branch="${REF#refs/heads/}"
+          case "$branch" in
+            refs/*|pull/*|"") echo "::error::'$REF' isn't a branch name."; exit 1 ;;
+          esac
+          encoded="$(jq -rn --arg branch "$branch" '$branch | @uri')"
+          if ! gh api "repos/$GITHUB_REPOSITORY/branches/$encoded" --silent; then
+            echo "::error::$branch isn't a branch of $GITHUB_REPOSITORY."
+            exit 1
+          fi
+  build:
+    needs: gate
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'engine-build' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    # GitHub's hosted macOS 27 image; see checks.yml.
+    runs-on: xcode-27
+    environment: engine-build
+    permissions:
+      # The engine is published as a release asset, its manifest is committed to the branch, and
+      # the results go to the pull request.
+      contents: write
+      pull-requests: write
+    # The longest a job may run on a GitHub-hosted runner.
+    timeout-minutes: 360
+    env:
+      ENGINE_ARCH: arm64
+      BRANCH: ${{ inputs.ref || github.event.pull_request.head.ref }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      SMOKES: ${{ inputs.smokes || 'engine-smoke headless-smoke component-updates-smoke' }}
+      BENCHMARK: ${{ github.event_name != 'workflow_dispatch' || inputs.benchmark }}
+      CACHE: ${{ github.event_name != 'workflow_dispatch' || inputs.cache }}
+      FRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.fresh }}
+      DEVELOPMENT_TEAM: ${{ vars.ARX_DEVELOPMENT_TEAM }}
+      ARX_SIGNING_IDENTITY: ${{ vars.ARX_SIGNING_IDENTITY }}
+      ENGINE_TREES: ${{ vars.ARX_ENGINE_TREES }}
+      RESULTS: build/engine-ci
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The labelled commit itself, so a later push to the branch isn't built unseen.
+          ref: ${{ github.event.pull_request.head.sha || inputs.ref }}
+          submodules: recursive
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          # An Actions cache could have been saved by a run that executed a pull request's code
+          # (record-snapshots), so this job never restores one.
+          cache: false
+      - name: Keep the Chromium tree outside the checkout
+        id: tree
+        # A tree per helium-macos release, so a rerun after re-anchoring builds incrementally.
+        run: |
+          set -euo pipefail
+          # ARX_ENGINE_TREES names a directory with 150 GB free; without it the tree goes beside the
+          # checkout, on the runner's own volume.
+          ENGINE_TREES="${ENGINE_TREES:-$(dirname "$GITHUB_WORKSPACE")/engine-trees}"
+          mkdir -p "$ENGINE_TREES"
+          echo "ENGINE_TREES=$ENGINE_TREES" >> "$GITHUB_ENV"
+          df -h "$ENGINE_TREES"
+          version="$(python3 -c 'import json; print(json.load(open("Packages/engine/engine.lock.json"))["helium_macos"]["version"])')"
+          tree="$ENGINE_TREES/helium-$version"
+          if [ "$FRESH" = true ]; then rm -rf "$tree"; fi
+          mkdir -p "$tree" .build "$RESULTS"
+          # make engine-cache stages the archive in the tree and moves it into the checkout.
+          if [ "$(stat -f %d "$ENGINE_TREES")" != "$(stat -f %d "$GITHUB_WORKSPACE")" ]; then
+            echo "ARX_ENGINE_TREES must be on the same volume as the runner's work directory" >&2
+            exit 1
+          fi
+          # make engine-prepare reapplies the overlays but never takes out another revision's
+          # edits. A tree that has had any other overlays stays marked, and its engine isn't cached.
+          identity="$(mise exec -- python3 -c 'from Scripts.engine import artifact; print(artifact.identity()["sources"])')"
+          stamp="$tree/arx-overlays"
+          if [ ! -e "$tree/helium-macos" ]; then
+            echo "$identity" > "$stamp"
+          elif [ "$(cat "$stamp" 2>/dev/null || true)" != "$identity" ]; then
+            echo mixed > "$stamp"
+          fi
+          if [ "$(cat "$stamp")" = mixed ]; then
+            echo "mixed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::$tree was prepared with other overlays too; the engine won't be cached. Run with fresh to cache it."
+          fi
+          if [ -L .build/engine ]; then rm .build/engine; fi
+          if [ -e .build/engine ]; then echo ".build/engine isn't a link to the engine trees" >&2; exit 1; fi
+          ln -s "$tree" .build/engine
+          echo "Chromium tree: $tree"
+      - name: Generate workspace
+        run: make bootstrap
+      - name: Fetch Helium at the locked revisions
+        run: make engine-tools engine-checkout
+      - name: Prepare Helium's tree and apply the overlays
+        id: prepare
+        run: make engine-prepare
+      - name: List every missing overlay anchor
+        if: failure() && steps.prepare.outcome == 'failure'
+        run: make engine-overlay-report 2>&1 | tee "$RESULTS/overlay-report.txt"
+      - name: Build the engine
+        id: engine
+        run: make engine-build
+      - name: Build the app and run the tests
+        id: tests
+        run: make build-app-runtime test-all
+      - name: Run the checks that need no display
+        id: smokes
+        run: |
+          make signing-check
+          # SMOKES is a list of Make targets.
+          # shellcheck disable=SC2086
+          make $SMOKES
+      - name: Publish the engine and commit its manifest
+        id: cache
+        if: env.CACHE == 'true' && steps.tree.outputs.mixed != 'true'
+        env:
+          ENGINE_RELEASES: capturecontext/arx-browser-engine
+          ENGINE_RELEASES_TOKEN: ${{ secrets.ARX_ENGINE_RELEASES_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "$BRANCH" = "$DEFAULT_BRANCH" ]; then
+            echo "The engine's manifest goes to a bump branch, never $DEFAULT_BRANCH." >&2
+            exit 1
+          fi
+          make engine-cache
+          # The asset first: a manifest whose asset is missing fails make engine-fetch everywhere.
+          sources="$(python3 -c 'import json; print(json.load(open("Artifacts/Engine/arx-engine-macos-arm64.json"))["identity"]["sources"])')"
+          tag="engine-${sources:0:16}"
+          archive=".build/engine-archives/$sources/arx-engine-macos-arm64.tar.gz"
+          # The archives' repository is another one, which the run's own token can't write to.
+          if [ -z "$ENGINE_RELEASES_TOKEN" ]; then
+            echo "::error::Set the ARX_ENGINE_RELEASES_TOKEN secret to publish to $ENGINE_RELEASES." >&2
+            exit 1
+          fi
+          if GH_TOKEN="$ENGINE_RELEASES_TOKEN" gh release view "$tag" --repo "$ENGINE_RELEASES" > /dev/null 2>&1; then
+            GH_TOKEN="$ENGINE_RELEASES_TOKEN" gh release upload "$tag" "$archive" --repo "$ENGINE_RELEASES" --clobber
+          else
+            GH_TOKEN="$ENGINE_RELEASES_TOKEN" gh release create "$tag" "$archive" --repo "$ENGINE_RELEASES" \
+              --title "Arx engine ($tag)" \
+              --notes "Prebuilt Arx engine for source fingerprint $sources. Fetched by make engine-fetch."
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Artifacts/Engine
+          if git diff --cached --quiet; then
+            echo "The branch already has this engine's manifest."
+            exit 0
+          fi
+          chromium="$(python3 -c 'import json; print(json.load(open("Packages/engine/engine.lock.json"))["chromium"])')"
+          git commit --quiet --message "Cache the Chromium $chromium arm64 engine" \
+            --message "By the engine build workflow (DEV-955)."
+          # Fails rather than overwrites when someone pushed to the branch during the build.
+          git push --quiet origin "HEAD:refs/heads/$BRANCH"
+      - name: Benchmark against the default branch's engine
+        id: benchmark
+        if: env.BENCHMARK == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          base="$RUNNER_TEMP/arx-engine-base"
+          rm -rf "$base"
+          git fetch --quiet --depth 1 origin "$DEFAULT_BRANCH"
+          git worktree add --detach "$base" FETCH_HEAD
+          trap 'git worktree remove --force "$base"' EXIT
+          # Each checkout is fresh, so its newest results are this run's.
+          # The benchmark folders are timestamps, so ls's order by time is safe here.
+          # shellcheck disable=SC2012
+          newest() { ls -t "$1"/build/benchmarks/*/results.json | head -1; }
+          (cd "$base" && mise trust --quiet && git submodule update --init --recursive \
+            && make bootstrap engine-fetch && make benchmark ARGS='--skip-chrome --tabs 1,20')
+          previous="$(newest "$base")"
+          cp "$previous" "$RESULTS/benchmark-previous.json"
+          make benchmark ARGS='--skip-chrome --tabs 1,20'
+          cp "$(newest .)" "$RESULTS/benchmark-current.json"
+          make perf-gate ARGS="--compare $RESULTS/benchmark-previous.json $RESULTS/benchmark-current.json --output $RESULTS/perf"
+      - name: Post the results
+        if: always()
+        env:
+          PREPARE: ${{ steps.prepare.outcome }}
+          ENGINE: ${{ steps.engine.outcome }}
+          TESTS: ${{ steps.tests.outcome }}
+          SMOKES_OUTCOME: ${{ steps.smokes.outcome }}
+          CACHE_OUTCOME: ${{ steps.cache.outcome }}
+          BENCHMARK_OUTCOME: ${{ steps.benchmark.outcome }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          MIXED: ${{ steps.tree.outputs.mixed }}
+        run: |
+          set -uo pipefail
+          summary="$RESULTS/summary.md"
+          {
+            echo "### Engine build"
+            echo
+            echo "[Run]($RUN) of \`$BRANCH\` at $(git rev-parse --short HEAD)."
+            echo
+            echo "| Step | Result |"
+            echo "| --- | --- |"
+            echo "| \`make engine-prepare\` (Helium's patches and Arx's overlays) | ${PREPARE:-skipped} |"
+            echo "| \`make engine-build\` | ${ENGINE:-skipped} |"
+            echo "| \`make build-app-runtime test-all\` | ${TESTS:-skipped} |"
+            echo "| \`make $SMOKES\` | ${SMOKES_OUTCOME:-skipped} |"
+            echo "| \`make engine-cache\`, published and its manifest committed | ${CACHE_OUTCOME:-skipped} |"
+            echo "| Benchmark against \`$DEFAULT_BRANCH\`'s engine (\`--tabs 1,20\`) | ${BENCHMARK_OUTCOME:-skipped} |"
+            if [ "$MIXED" = true ]; then
+              echo
+              echo "The Chromium tree had been prepared with other overlays before, so the engine wasn't cached. Run *Engine build* by hand with \`fresh\` to cache it."
+            fi
+            if [ -s "$RESULTS/overlay-report.txt" ]; then
+              echo
+              echo "<details><summary>Missing overlay anchors</summary>"
+              echo
+              echo '```'
+              cat "$RESULTS/overlay-report.txt"
+              echo '```'
+              echo
+              echo "</details>"
+            fi
+            if [ -s "$RESULTS/perf/gate.md" ]; then
+              echo
+              cat "$RESULTS/perf/gate.md"
+            fi
+          } > "$summary"
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          number="${PULL_REQUEST:-$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')}"
+          if [ -n "$number" ]; then
+            gh pr comment "$number" --body-file "$summary"
+          fi
+      - name: Upload logs and results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: engine-build-${{ github.run_number }}
+          path: |
+            build/logs/
+            build/engine-ci/
+          if-no-files-found: ignore

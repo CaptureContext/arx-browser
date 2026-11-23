@@ -1,0 +1,2 @@
+# Official independent client fixture; never imported by the app or helper.
+mcp==1.26.0

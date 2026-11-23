@@ -1,0 +1,16 @@
+[tools]
+python = "3.12.12"
+# Above ruby: mise puts tools on PATH in this order, so this fastlane wins over any
+# fastlane gem installed into the Ruby itself. Only fastlane's own version is pinned.
+"gem:fastlane" = { version = "2.242.0", depends = ["ruby"] }
+ruby = "3.3.14"
+xcodegen = "2.45.4"
+"pipx:dmgbuild" = "1.6.7"
+swiftformat = "0.64.7"
+swiftlint = "0.65.1"
+
+[env]
+# RubyGems crashes generating documentation for fastlane's gems on Ruby 3.3 (its bundled rdoc
+# meets the newer rdoc fastlane installs), which fails the install. .gemrc turns documentation off.
+GEMRC = "{{config_root}}/.gemrc"
+_.file = { path = ".env", optional = true }

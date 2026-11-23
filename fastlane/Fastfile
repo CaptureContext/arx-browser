@@ -1,0 +1,155 @@
+require "dotenv"
+
+Dotenv.load(File.expand_path("../.env", __dir__))
+skip_docs
+
+def signing_api_key
+  root = File.expand_path("..", __dir__)
+  options = {
+    key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID"),
+    issuer_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
+    in_house: false
+  }
+  key_file = ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"].to_s.strip
+  if key_file.empty?
+    options[:key_content] = ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_CONTENT")
+    options[:is_key_content_base64] = ENV.fetch("APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64", "false").casecmp("true").zero?
+  else
+    options[:key_filepath] = File.expand_path(key_file, root)
+  end
+  app_store_connect_api_key(**options)
+end
+
+ARX_BUNDLE_ID = "dev.capturecontext.arx"
+# Arx Dev, the Debug build (DEV-1013). It has a development profile only.
+ARX_DEV_BUNDLE_ID = "#{ARX_BUNDLE_ID}.dev"
+
+default_platform(:mac)
+
+platform :mac do
+  desc "Restore existing shared Apple Development certificates and the development profiles without changing the portal"
+  lane :development_signing do
+    options = {
+      type: "development",
+      platform: "macos",
+      generate_apple_certs: true,
+      team_id: ENV.fetch("DEVELOPMENT_TEAM").strip,
+      api_key: signing_api_key,
+      git_url: ENV.fetch("MATCH_GIT_URL"),
+      git_branch: ENV.fetch("MATCH_GIT_BRANCH", "main"),
+      readonly: true
+    }
+    match(**options, app_identifier: ARX_BUNDLE_ID)
+    # Until signing_profiles has made Arx Dev's profile, make run signs Arx Dev without iCloud.
+    begin
+      match(**options, app_identifier: ARX_DEV_BUNDLE_ID)
+    rescue StandardError => error
+      UI.important("No Arx Dev development profile in Match yet (#{error.message.lines.first&.strip}). See DEVELOPMENT.md › Arx Dev.")
+    end
+  end
+
+  desc "Restore the existing shared Developer ID Application certificate and profile without changing the portal"
+  lane :developer_id_signing do
+    options = {
+      type: "developer_id",
+      platform: "macos",
+      app_identifier: ARX_BUNDLE_ID,
+      team_id: ENV.fetch("DEVELOPMENT_TEAM").strip,
+      api_key: signing_api_key,
+      git_url: ENV.fetch("MATCH_GIT_URL"),
+      git_branch: ENV.fetch("MATCH_GIT_BRANCH", "main"),
+      readonly: true
+    }
+    # CI imports into a throwaway keychain instead of the runner's login keychain.
+    keychain = release_keychain
+    if keychain
+      create_keychain(
+        name: keychain[:name],
+        password: keychain[:password],
+        default_keychain: false,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false,
+        add_to_search_list: true
+      )
+      options[:keychain_name] = keychain[:name]
+      options[:keychain_password] = keychain[:password]
+    end
+    match(**options)
+  end
+
+  desc "WRITES to the portal and Match: register Macs, then create or regenerate the iCloud-capable profiles (Arx Dev: development only)"
+  lane :signing_profiles do |options|
+    team_id = ENV.fetch("DEVELOPMENT_TEAM").strip
+    api_key = signing_api_key
+    force = options[:force].to_s.casecmp("true").zero?
+
+    # Optional tab-separated `Device ID<TAB>Device Name` list, kept outside the repository.
+    devices_file = options[:devices].to_s.strip
+    unless devices_file.empty?
+      register_devices(
+        devices_file: File.expand_path(devices_file),
+        platform: "mac",
+        team_id: team_id,
+        api_key: api_key
+      )
+    end
+
+    profiles = lambda do |type, identifier|
+      match(
+        type: type,
+        platform: "macos",
+        app_identifier: identifier,
+        team_id: team_id,
+        api_key: api_key,
+        git_url: ENV.fetch("MATCH_GIT_URL"),
+        git_branch: ENV.fetch("MATCH_GIT_BRANCH", "main"),
+        readonly: false,
+        force: force,
+        force_for_new_devices: type == "development"
+      )
+    end
+
+    profiles.call("development", ARX_BUNDLE_ID)
+    # Arx Dev's App ID is optional: until it is registered, Arx Dev is signed without a profile
+    # (DEV-1013), and that must not stop Arx's own profiles from being made.
+    begin
+      profiles.call("development", ARX_DEV_BUNDLE_ID)
+    rescue StandardError => error
+      UI.important("Skipped Arx Dev's development profile (#{error.message.lines.first&.strip}). See DEVELOPMENT.md › Arx Dev.")
+    end
+    profiles.call("developer_id", ARX_BUNDLE_ID)
+  end
+
+  desc "WRITES to Match: store an existing Developer ID Application certificate (cert:<.cer> p12:<.p12>)"
+  lane :import_developer_id do |options|
+    require "match"
+    params = FastlaneCore::Configuration.create(Match::Options.available_options, {
+      type: "developer_id",
+      platform: "macos",
+      app_identifier: [ARX_BUNDLE_ID],
+      team_id: ENV.fetch("DEVELOPMENT_TEAM").strip,
+      api_key: signing_api_key,
+      git_url: ENV.fetch("MATCH_GIT_URL"),
+      git_branch: ENV.fetch("MATCH_GIT_BRANCH", "main")
+    })
+    Match::Importer.new.import_cert(
+      params,
+      cert_path: File.expand_path(options.fetch(:cert)),
+      p12_path: File.expand_path(options.fetch(:p12))
+    )
+  end
+
+  desc "Delete the throwaway release keychain made by developer_id_signing on CI"
+  lane :release_keychain_cleanup do
+    keychain = release_keychain
+    path = keychain && File.expand_path("~/Library/Keychains/#{keychain[:name]}-db")
+    delete_keychain(name: keychain[:name]) if path && File.exist?(path)
+  end
+end
+
+def release_keychain
+  name = ENV["ARX_RELEASE_KEYCHAIN"].to_s.strip
+  return nil if name.empty?
+  { name: name, password: ENV.fetch("ARX_RELEASE_KEYCHAIN_PASSWORD") }
+end

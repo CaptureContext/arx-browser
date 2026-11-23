@@ -1,0 +1,23 @@
+# Owned media fixture
+
+`pattern.webm` is a two-second, 160×90 VP8 test pattern with a mono 48 kHz Opus audio track generated locally from FFmpeg's synthetic `testsrc2` and `anullsrc` sources. The audio decodes to silence. It contains no downloaded artwork, film, third-party recording or user content. SHA-256: `cdf2634379d6918d6664b79b64fba5483c4992df19dac7f6273b621fc6832282`.
+
+Generated with FFmpeg 9.0.1:
+
+```sh
+ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=160x90:rate=10 -f lavfi -i anullsrc=channel_layout=mono:sample_rate=48000 -t 2 -map 0:v:0 -map 1:a:0 -c:v libvpx -b:v 60k -c:a libopus -b:a 64k -application lowdelay -fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1 -y Scripts/fixtures/media/pattern.webm
+```
+
+`pattern-portrait.webm` is the same recipe at 90×160 (`testsrc2=size=90x160`, otherwise identical, generated with FFmpeg 7.1.1), for ArxPiP's aspect ratio (DEV-848); the `portrait` page plays it at 152×270 CSS points, above the same Start button. SHA-256: `394af2f3ea57e360fdf2580b678c23aba8304d819217d8c62ec1ad1504e2239c`. Its audio decodes to the same 96,000 zero samples.
+
+Decoding the checked-in audio with `ffmpeg -hide_banner -loglevel error -i Scripts/fixtures/media/pattern.webm -map 0:a:0 -f f32le -` produces exactly 96,000 float32 samples, all zero (peak 0.0); the 384,000 decoded bytes have SHA-256 `fec9afb531a8e036eba1d81651896e1b2c1f78b0234dbadc8e7549563f09407b`. The optional FFmpeg test verifies sample count and exact silence. Codec identifiers, the asset hash, HTTP ranges and fixture markup are checked without FFmpeg. The low-delay Opus mode matters: a low-bitrate voice-mode encode can add nonzero comfort noise.
+
+Pages preload one unmuted video and require the explicit **Start controlled media** button. There is no autoplay attribute or runtime autoplay override. The button accepts one trusted input, starts playback, and reports readiness/start counters and the video's current time with the ordinary page state. The DEBUG helper validates fixture ownership, the exact loopback URL, attached page, key window and bounded content geometry before sending mouse-down/up directly to that owned window. It repeats Start after navigation and on each new fixture page; it never posts input to the global event queue. The private fixture also receives owned-window Start input, but Swift reads no private title, metadata or playback counters. Its boolean `hide_metadata` assertion proves the queried policy only, not OS presentation or that private playback has started.
+
+This audio track and explicit start are necessary for the pinned Chromium contract. `WebMediaPlayerImpl::HasUnmutedAudio` withholds the audio flag when `HTMLMediaElement::WasAlwaysMuted` is true; `MediaSessionController::IsMediaSessionNeeded` registers a normal player only when it has audio and WebContents audio is not muted (or it is already in PiP). A muted video-only fixture cannot test initial MediaSession play/pause. Silent samples keep this fixture quiet while exercising normal registration and user activation.
+
+The HTTP fixture validates checked-in bytes and supports bounded byte ranges. Manual PiP must reuse the existing element/stream. Constant MediaSession metadata identifies the controlled case. `late` delays its PiP handler beyond the native five-second deadline, and `remove` destroys its source after entry. `private` supplies recognizable disposable metadata for unique-OTR privacy validation; the native probe reports only the hide_metadata flag.
+
+This fixture is prepared, not native runtime evidence. Real PiP, native Close versus Exit/Return behavior, renderer/navigation cleanup, OS metadata redaction, display/fullscreen/Stage Manager and accessibility still require the replacement framework. This controlled synthetic VP8/Opus path does not establish audio-only, protected-content or general website compatibility.
+
+Automatic-entry cases report the media-session reason and transient activation state. The signed runner waits until activation expires, expects visible-source denial, hides only its owned window and checks `contentoccluded` entry without general user activation. A handler-free page also gets automatic entry, which Arx starts on the browser's behalf (`BrowserInitiatedAutomaticPictureInPicture`), without a page request. The visibility phase checks that neither the per-site opt-out nor the Settings toggle lets leaving the tab open PiP (`ARX_MEDIA_AUTOMATIC_GATES_SUCCESS`). A delayed handler returning after the source is visible must be denied. Every media phase, including `ARX_MEDIA_AUTOMATIC_SUCCESS`, is mandatory.

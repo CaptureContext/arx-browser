@@ -1,0 +1,29 @@
+.DS_Store
+.build/
+.swiftpm/
+build/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+Containers/macOS/Info.plist
+Containers/macOS/Arx.entitlements
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+# Left over from the Bundler setup that mise's gem:fastlane replaced; ignored so old checkouts stay clean.
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+.claude/settings.local.json
+
+# Danger JS, installed by the Danger workflow (DEV-1281).
+.github/danger/node_modules/
+
+# A prebuilt engine archive placed beside its manifest by hand; see Artifacts/Engine/README.md.
+Artifacts/Engine/*.tar.gz

@@ -1,0 +1,68 @@
+{
+  "fill": {
+    "solid": "srgb:0.10196,0.36863,0.78431,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "blend-mode": "normal",
+          "fill": {
+            "solid": "srgb:1.00000,1.00000,1.00000,1.00000"
+          },
+          "glass": false,
+          "hidden": false,
+          "image-name": "02-Vector.svg",
+          "name": "Vector mark (Arx Dev)",
+          "position": {
+            "scale": 1.3,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "layers": [
+        {
+          "blend-mode": "normal",
+          "fill": {
+            "solid": "srgb:0.10196,0.36863,0.78431,1.00000"
+          },
+          "glass": true,
+          "hidden": false,
+          "image-name": "01-Keycap.svg",
+          "name": "Keycap face",
+          "position": {
+            "scale": 1.25,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.4
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}

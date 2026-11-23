@@ -1,0 +1,102 @@
+name: Engine upstream
+# Nightly on a GitHub-hosted runner (DEV-955): is there a helium-macos release newer than
+# engine.lock.json? If so, move the pins on an engine/helium-<version> branch, check every overlay
+# anchor at the new release without the Chromium tree (make engine-anchor-check), and open a draft
+# pull request with the anchor report and Helium's release notes. Nothing is built here: label the
+# pull request engine-build to build it (engine-build.yml).
+# The nightly run is off until the repository variable ARX_ENGINE_BUMPS is `on`; running it by
+# hand always works. See DEVELOPMENT.md › Engine updates.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: engine-upstream
+  cancel-in-progress: false
+jobs:
+  check:
+    # Scheduled runs create branches and pull requests unattended, so they wait for the variable.
+    if: github.event_name == 'workflow_dispatch' || vars.ARX_ENGINE_BUMPS == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Look for a newer helium-macos release
+        id: upstream
+        # Scripts.engine.automation rather than Scripts.tasks, which imports commands that load macOS libraries.
+        run: python3 -m Scripts.engine.automation engine-upstream --json build/engine-upstream/update.json
+      - name: Look for the release's branch and pull request
+        id: branch
+        if: steps.upstream.outputs.update == 'true'
+        env:
+          VERSION: ${{ steps.upstream.outputs.version }}
+        run: |
+          set -euo pipefail
+          branch="engine/helium-$VERSION"
+          echo "name=$branch" >> "$GITHUB_OUTPUT"
+          # The branch may hold re-anchored overlays or a cached engine by now; never replace it.
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Any pull request, open or closed: a closed one was a decision, not a reason to reopen.
+          pull_request="$(gh pr list --head "$branch" --state all --json number --jq '.[0].number // empty')"
+          echo "pull_request=$pull_request" >> "$GITHUB_OUTPUT"
+          if [ -n "$pull_request" ]; then echo "$branch has pull request #$pull_request; nothing to do."; fi
+      - name: Move the pins
+        if: steps.upstream.outputs.update == 'true' && steps.branch.outputs.pull_request == '' && steps.branch.outputs.exists == 'false'
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          git switch --create "$BRANCH"
+          python3 -m Scripts.engine.automation engine-bump --json build/engine-upstream/update.json
+      - name: Take the branch an earlier run pushed without a pull request
+        if: steps.upstream.outputs.update == 'true' && steps.branch.outputs.pull_request == '' && steps.branch.outputs.exists == 'true'
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          git fetch --quiet origin "refs/heads/$BRANCH"
+          git switch --detach FETCH_HEAD
+      - name: Check the overlay anchors at the new release
+        id: anchors
+        if: steps.upstream.outputs.update == 'true' && steps.branch.outputs.pull_request == ''
+        continue-on-error: true
+        run: python3 -m Scripts.engine.automation engine-anchor-check --report build/engine-upstream/anchors.md --json build/engine-upstream/anchors.json
+      - name: Push the branch and open a draft pull request
+        if: steps.upstream.outputs.update == 'true' && steps.branch.outputs.pull_request == ''
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+          EXISTS: ${{ steps.branch.outputs.exists }}
+          BASE: ${{ github.event.repository.default_branch }}
+          ANCHORS: ${{ steps.anchors.outputs.anchors }}
+        run: |
+          set -euo pipefail
+          python3 -m Scripts.engine.automation pull-request build/engine-upstream/update.json \
+            build/engine-upstream/anchors.md "$ANCHORS" build/engine-upstream
+          if [ "$EXISTS" = false ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add --update
+            git commit --quiet --message "$(cat build/engine-upstream/title.txt)" \
+              --message "By the nightly engine upstream check (DEV-955)."
+            git push --quiet origin "HEAD:refs/heads/$BRANCH"
+          fi
+          gh pr create --draft --base "$BASE" --head "$BRANCH" \
+            --title "$(cat build/engine-upstream/title.txt)" --body-file build/engine-upstream/body.md
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: engine-upstream-${{ github.run_number }}
+          path: build/engine-upstream/
+          if-no-files-found: ignore

@@ -1,0 +1,98 @@
+module arx.inspection.mojom;
+
+// No raw AX tree crosses this interface. Projection and hard budgets are
+// enforced in the renderer before Mojo serializes the result.
+struct Limits {
+  uint32 nodes;
+  uint32 text_bytes;
+  uint32 references;
+  uint32 output_bytes;
+  uint32 timeout_ms;
+  // ABI25: the first projected node index to emit. Every window of one DOM
+  // version projects the same tree, so windows concatenate without overlap.
+  uint32 window_start;
+  // Opt-in values of eligible form controls; password ancestry stays omitted.
+  bool form_values;
+  // Element bounds in viewport points of the main widget.
+  bool bounds;
+};
+
+enum Status {
+  kSuccess,
+  kUnavailable,
+  kNotReady,
+  kUnsupported,
+  kStale,
+  kLimit,
+  kTimeout,
+  kBusy,
+  kInvalid,
+  kCancelled,
+};
+
+enum ClickDisposition {
+  kNotDispatched,
+  kDispatched,
+  kPossiblyDispatched,
+};
+enum ClickStatus {
+  kOK, kUnavailable, kNotReady, kUnsupported, kStale, kNotInteractable,
+  kNotAuthorized, kBusy, kLimit, kDuplicate, kCancelled, kTimeout, kInvalid,
+};
+
+enum FormDisposition { kNotDispatched, kDispatched, kPossiblyDispatched, kUnchanged };
+enum FormStatus {
+  kOK, kUnavailable, kNotReady, kUnsupportedDocument, kStale, kNotInteractable,
+  kNotAuthorized, kBusy, kLimit, kDuplicate, kCancelled, kTimeout, kInvalid,
+  kUnsupportedControl, kInvalidValue, kOptionNotFound, kAmbiguousOption,
+  // ABI27 pointer input: the point hit another element than the reference.
+  kObscured,
+};
+// ABI27 pointer kinds share the form receipts and physical admission. Hover
+// is non-consuming: a clean hover keeps its snapshot (DEV-669).
+enum FormActionKind {
+  kReplaceText = 1, kSelectValue = 2, kKeypress = 4,
+  kHover = 8, kPointerClick = 16, kDrag = 32,
+  // ABI28 typing and key chords; both consume their snapshot.
+  kType = 64, kKeyChord = 128,
+  // ABI29 explicit form state; both consume their snapshot.
+  kSelectValues = 256, kSetChecked = 512,
+};
+
+enum ScrollAxis { kHorizontal = 0, kVertical = 1 };
+enum ScrollDisposition { kNotDispatched, kDispatched, kPossiblyDispatched, kUnchanged };
+enum ScrollStatus {
+  kOK, kUnavailable, kNotReady, kUnsupportedDocument, kStale, kNotInteractable,
+  kNotAuthorized, kBusy, kLimit, kDuplicate, kCancelled, kTimeout, kInvalid,
+  kNoContainer, kInvalidDelta,
+};
+
+interface Inspector {
+  Scroll(string scope, string snapshot, string reference, string operation,
+         ScrollAxis axis, double delta_css_pixels)
+      => (ScrollDisposition disposition, ScrollStatus status);
+  Inspect(string scope, string snapshot, Limits limits)
+      => (Status status, array<uint8> json);
+  Validate(string scope, string snapshot, string reference) => (Status status);
+  Forget(string snapshot);
+  FormAction(string scope, string snapshot, string reference, string operation,
+             FormActionKind kind, array<uint8> payload)
+      => (FormDisposition disposition, FormStatus status);
+  Click(string scope, string snapshot, string reference, string operation)
+      => (ClickDisposition disposition, ClickStatus status);
+  // ABI27 real mouse input. reference is the snapshot ID itself for a point
+  // in the frame's viewport. payload is the bounded canonical pointer JSON.
+  PointerAction(string scope, string snapshot, string reference, string operation,
+                FormActionKind kind, array<uint8> payload)
+      => (FormDisposition disposition, FormStatus status);
+  // ABI28 keyboard input: kType payload is UTF-8 text, kKeyChord payload is
+  // "<modifiers>:<key>". Arx focuses the reference first.
+  KeyboardAction(string scope, string snapshot, string reference, string operation,
+                 FormActionKind kind, array<uint8> payload)
+      => (FormDisposition disposition, FormStatus status);
+  // ABI29: kSelectValues payload is a JSON array of exact option values;
+  // kSetChecked payload is "1" or "0".
+  FormStateAction(string scope, string snapshot, string reference, string operation,
+                  FormActionKind kind, array<uint8> payload)
+      => (FormDisposition disposition, FormStatus status);
+};

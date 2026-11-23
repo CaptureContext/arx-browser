@@ -1,0 +1,70 @@
+targetTemplates:
+  macOSPreview:
+    type: application
+    platform: macOS
+    sources:
+      - path: Previews/Shared/macOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
+        ENABLE_HARDENED_RUNTIME: false
+        ENABLE_APP_SANDBOX: false
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: true
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+targets:
+  AppUIPreview:
+    templates: [macOSPreview]
+    info:
+      path: build/Generated/AppUIPreview-Info.plist
+      properties:
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: dev.capturecontext.arx.sidebar-item
+            UTTypeDescription: Arx sidebar item
+            UTTypeConformsTo: [public.data]
+          - UTTypeIdentifier: dev.capturecontext.arx.sidebar-space
+            UTTypeDescription: Arx sidebar space
+            UTTypeConformsTo: [public.data]
+    sources:
+      - path: Previews/AppUI/macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.capturecontext.arx.preview.app-ui
+        PRODUCT_NAME: AppUIPreview
+        INFOPLIST_KEY_CFBundleDisplayName: Arx UI Preview
+    dependencies:
+      - package: preview-features
+        product: SidebarFeature
+      - package: preview-features
+        product: SettingsFeature
+      - package: preview-design-system
+        product: AppUI
+      - package: preview-core
+        product: BrowserCore
+      - package: preview-dependencies
+        product: _ComposableArchitecture
+  AppUIPreviewInteractionTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Previews/AppUI/Tests
+      - path: Previews/AppUI/macOS/PreviewFixture.swift
+      - path: Previews/AppUI/macOS/PreviewEditing.swift
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: dev.capturecontext.arx.preview.app-ui.tests
+    dependencies:
+      - package: preview-features
+        product: SidebarFeature
+schemes:
+  AppUIPreview:
+    build:
+      targets:
+        AppUIPreview: all
+        AppUIPreviewInteractionTests: [test]
+    run:
+      config: Debug
+    test:
+      targets: [AppUIPreviewInteractionTests]

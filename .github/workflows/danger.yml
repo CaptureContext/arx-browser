@@ -1,0 +1,66 @@
+name: Danger
+# Deterministic highlights on every pull request (DEV-1281): dependency changes as a table with the
+# `new dependency` label, engine changes, UI changes without a picture, user-visible changes without
+# a word about the manual, very large pull requests, and changes to CI or agent instructions. Every
+# rule warns; none fails. See .github/danger/dangerfile.js and DEVELOPMENT.md › Public CI.
+#
+# pull_request_target, so it can comment and label on a fork's pull request too. That event runs
+# this file and the checkout from the default branch, with a token that can write. So nothing here
+# runs the pull request's code: the checkout is the default branch's, Danger and its lockfile are
+# the default branch's, and the pull request's commits are only fetched as Git objects, which
+# Scripts/dependency_diff.py (the default branch's copy) reads with `git show`. No secrets.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+permissions: {}
+concurrency:
+  group: danger-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  danger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Danger's comment and the label go through the issues API.
+      issues: write
+      pull-requests: write
+      # Danger's own status on the pull request's head commit.
+      statuses: write
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PULL_REQUEST: ${{ github.event.pull_request.number }}
+      RESULTS: build/danger
+    steps:
+      - name: Check out the default branch, never the pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the pull request's commits as data
+        # refs/pull/N/head exists in this repository for forks too. Nothing from it is checked out.
+        # The token goes to this one command, not into .git/config.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags --quiet origin "+refs/pull/$PULL_REQUEST/head:refs/remotes/pull/head" "$BASE_SHA"
+          test "$(git rev-parse refs/remotes/pull/head)" = "$HEAD_SHA" || echo "::notice::The pull request moved on since this run started; the next run covers the new commits."
+      - name: List the dependency changes
+        run: |
+          set -euo pipefail
+          mkdir -p "$RESULTS"
+          python3 -m Scripts.dependency_diff --base "$BASE_SHA" --head refs/remotes/pull/head \
+            --json "$RESULTS/dependencies.json" --markdown "$RESULTS/dependencies.md"
+      - name: Install Danger from the lockfile, without install scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix .github/danger
+      - name: Run Danger
+        env:
+          DANGER_GITHUB_API_TOKEN: ${{ github.token }}
+          ARX_DEPENDENCIES_JSON: build/danger/dependencies.json
+          ARX_DEPENDENCIES_MARKDOWN: build/danger/dependencies.md
+        run: .github/danger/node_modules/.bin/danger ci --dangerfile .github/danger/dangerfile.js --id arx

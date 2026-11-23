@@ -1,0 +1,27 @@
+name: Project
+include:
+  - path: .xcodegen/settings.yml
+    relativePaths: false
+  - path: .xcodegen/macOS.yml
+    relativePaths: false
+  - path: Previews/previews.yml
+    relativePaths: false
+packages:
+  automation-services:
+    path: Packages/services
+    excludeFromProject: true
+  application-package:
+    path: .
+    excludeFromProject: true
+  preview-design-system:
+    path: Packages/design-system
+    excludeFromProject: true
+  preview-core:
+    path: Packages/core
+    excludeFromProject: true
+  preview-dependencies:
+    path: Packages/dependencies
+    excludeFromProject: true
+  preview-features:
+    path: Packages/features
+    excludeFromProject: true

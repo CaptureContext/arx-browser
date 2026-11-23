@@ -1,0 +1,22 @@
+[
+  {
+    "path": "chrome/browser/external_protocol/external_protocol_handler.cc",
+    "anchor": "#include \"components/web_modal/web_contents_modal_dialog_manager.h\"",
+    "body": "#include \"components/web_modal/web_contents_modal_dialog_manager.h\"\n#include \"components/web_modal/web_contents_modal_dialog_manager_delegate.h\"\n#include \"base/functional/callback_helpers.h\""
+  },
+  {
+    "path": "chrome/browser/external_protocol/external_protocol_handler.cc",
+    "anchor": "void LaunchUrlWithoutSecurityCheckWithDelegate(\n    const GURL& url,\n    content::WebContents* web_contents,\n    content::WeakDocumentPtr initiator_document,\n    ExternalProtocolHandler::Delegate* delegate) {",
+    "body": "base::OnceClosure EmbeddedExternalCompletion(content::WebContents* contents) {\n  auto* manager = contents\n      ? web_modal::WebContentsModalDialogManager::FromWebContents(contents) : nullptr;\n  return manager && manager->delegate()\n      ? manager->delegate()->GetExternalProtocolRequestCompletion(contents) : base::OnceClosure();\n}\n\nbool EmbeddedExternalSourceCurrent(content::WebContents* contents,\n                                   content::WeakDocumentPtr initiator) {\n  auto* manager = contents\n      ? web_modal::WebContentsModalDialogManager::FromWebContents(contents) : nullptr;\n  if (!manager || !manager->delegate()) return true;\n  auto guard = manager->delegate()->GetDialogDecisionGuard(contents, initiator);\n  return !guard || guard.Run();\n}\n\nvoid LaunchUrlWithoutSecurityCheckWithDelegate(\n    const GURL& url,\n    content::WebContents* web_contents,\n    content::WeakDocumentPtr initiator_document,\n    ExternalProtocolHandler::Delegate* delegate) {\n  // Enterprise policy and other direct callers can bypass LaunchUrl's worker.\n  // They still require the embedding source at this final synchronous boundary.\n  base::ScopedClosureRunner completion(EmbeddedExternalCompletion(web_contents));\n  if (!EmbeddedExternalSourceCurrent(web_contents, initiator_document)) return;\n  if (g_owned_fixture_interceptor) {\n    g_owned_fixture_interceptor.Run(url, web_contents);\n    return;\n  }"
+  },
+  {
+    "path": "chrome/browser/external_protocol/external_protocol_handler.cc",
+    "anchor": "ExternalProtocolHandler::Delegate* g_external_protocol_handler_delegate =\n    nullptr;",
+    "body": "ExternalProtocolHandler::Delegate* g_external_protocol_handler_delegate =\n    nullptr;\nbase::RepeatingCallback<void(const GURL&, content::WebContents*)> g_owned_fixture_interceptor;"
+  },
+  {
+    "path": "chrome/browser/external_protocol/external_protocol_handler.cc",
+    "anchor": "void ExternalProtocolHandler::PermitLaunchUrl() {",
+    "body": "void ExternalProtocolHandler::SetOwnedFixtureLaunchInterceptorForTesting(\n    base::RepeatingCallback<void(const GURL&, content::WebContents*)> interceptor) {\n  g_owned_fixture_interceptor = std::move(interceptor);\n}\n\nvoid ExternalProtocolHandler::PermitLaunchUrl() {"
+  }
+]

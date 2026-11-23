@@ -1,0 +1,113 @@
+name: Release
+# Builds, signs, notarizes and verifies the disk image for the Stable or Beta update channel
+# (DEV-888), then keeps it as a workflow artifact. It doesn't publish anything: no tag, no GitHub
+# release, no update feed. make appcast --channel makes the feeds and prints the gh commands.
+on:
+  workflow_dispatch:
+    inputs:
+      notarize:
+        description: Submit the app and disk image to Apple's notarization service
+        type: boolean
+        default: true
+      channel:
+        description: The update channel the release is for
+        type: choice
+        options: [stable, beta]
+        default: stable
+      perf_override:
+        description: Ship despite a performance regression, or with no baseline for the runner's Mac model; the reason is recorded
+        type: string
+        default: ""
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  dmg:
+    # GitHub's hosted macOS 27 image; see checks.yml. The signing material comes from the `release`
+    # environment's secrets into a throwaway keychain, so nothing has to live on the runner.
+    runs-on: xcode-27
+    environment: release
+    timeout-minutes: 120
+    env:
+      ENGINE_ARCH: arm64
+      DEVELOPMENT_TEAM: ${{ vars.ARX_DEVELOPMENT_TEAM }}
+      ARX_RELEASE_IDENTITY: ${{ vars.ARX_RELEASE_IDENTITY }}
+      ARX_RELEASE_KEYCHAIN: arx-release-${{ github.run_id }}-${{ github.run_attempt }}
+      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      MATCH_GIT_BRANCH: ${{ vars.MATCH_GIT_BRANCH || 'main' }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+      APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: ${{ vars.APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64 || 'false' }}
+      RELEASE_ARGS: --channel ${{ inputs.channel }} ${{ !inputs.notarize && '--skip-notarize' || '' }}
+      VERIFY_ARGS: ${{ !inputs.notarize && '--allow-unnotarized' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          # An Actions cache could have been saved by a run that executed a pull request's code
+          # (record-snapshots), so the release never restores one.
+          cache: false
+      - name: Generate workspace
+        run: make bootstrap
+      - name: Restore and validate the pinned arm64 engine
+        run: make engine-fetch engine-validate
+      - name: Prepare signing credentials
+        run: |
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          echo "ARX_RELEASE_KEYCHAIN_PASSWORD=$password" >> "$GITHUB_ENV"
+          # Only for an HTTPS match repository; an empty value would break SSH access.
+          if [ -n "$MATCH_BASIC_AUTHORIZATION" ]; then
+            echo "MATCH_GIT_BASIC_AUTHORIZATION=$MATCH_BASIC_AUTHORIZATION" >> "$GITHUB_ENV"
+          fi
+        env:
+          MATCH_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      - name: Restore the Developer ID certificate
+        run: make release-signing-setup
+      - name: Build, sign, notarize and package
+        run: make dmg ARGS="$RELEASE_ARGS"
+      - name: Verify the disk image
+        run: make dmg-verify ARGS="$VERIFY_ARGS"
+      - name: Performance gate against the previous release
+        # Compares with Scripts/perf-baselines/<runner's Mac model>.json and records this release
+        # as the new baseline once it passes; the artifact's baseline.json is what to commit.
+        # make benchmark needs the runner's logged-in GUI session and a quiet Mac.
+        env:
+          PERF_OVERRIDE: ${{ inputs.perf_override }}
+        run: |
+          set -- --current build/release/Arx.app --record --output build/release/perf-gate
+          if [ -n "$PERF_OVERRIDE" ]; then set -- "$@" --override "$PERF_OVERRIDE"; fi
+          mise exec -- python3 -m Scripts.tasks perf-gate "$@"
+      - name: Upload the performance gate
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: perf-gate-${{ github.run_number }}
+          path: build/release/perf-gate/
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: Upload the disk image
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: arx-dmg-${{ inputs.channel }}-${{ github.run_number }}
+          path: |
+            build/release/Arx-*.dmg
+            build/release/Arx-*.dmg.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Delete the throwaway keychain
+        if: always()
+        run: make release-signing-cleanup
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-logs-${{ github.run_number }}
+          path: build/logs/
+          if-no-files-found: ignore

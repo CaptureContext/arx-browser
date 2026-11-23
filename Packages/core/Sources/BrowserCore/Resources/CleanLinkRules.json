@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "parameters": [
+    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
+    "gclid", "gclsrc", "dclid", "gbraid", "wbraid", "gad_source", "gad_campaignid", "srsltid",
+    "fbclid", "msclkid", "yclid", "ysclid", "twclid", "ttclid", "li_fat_id", "epik", "rdt_cid",
+    "mc_cid", "mc_eid", "mkt_tok", "_hsenc", "_hsmi", "__hssc", "__hstc", "__hsfp", "hsctatracking",
+    "_ga", "_gl", "_openstat", "vero_id", "vero_conv", "oly_anon_id", "oly_enc_id", "rb_clickid",
+    "s_cid", "sc_cid", "ncid", "cmpid", "wickedid", "irclickid", "irgwc", "gc_id", "zanpid",
+    "ml_subscriber", "ml_subscriber_hash", "ck_subscriber_id", "trk_contact", "trk_msg", "trk_module",
+    "trk_sid", "_kx", "dm_i", "spm", "scm"
+  ],
+  "prefixes": ["utm_", "pk_", "piwik_", "mtm_", "matomo_", "hsa_", "itm_"],
+  "sites": [
+    {
+      "name": "YouTube",
+      "hosts": ["youtube.com", "youtu.be", "youtube-nocookie.com"],
+      "parameters": ["si", "feature", "pp", "embeds_referring_euri", "source_ve_path"]
+    },
+    {
+      "name": "Spotify",
+      "hosts": ["spotify.com", "spotify.link"],
+      "parameters": ["si", "nd", "dlsi"]
+    },
+    {
+      "name": "X",
+      "hosts": ["x.com", "twitter.com"],
+      "parameters": ["s", "t", "ref_src", "ref_url", "src"]
+    },
+    {
+      "name": "LinkedIn",
+      "hosts": ["linkedin.com"],
+      "parameters": ["trk", "trkinfo", "lipi", "refid", "trackingid"]
+    },
+    {
+      "name": "Amazon",
+      "hosts": [
+        "amazon.com", "amazon.ca", "amazon.com.mx", "amazon.com.br", "amazon.co.uk", "amazon.de",
+        "amazon.fr", "amazon.it", "amazon.es", "amazon.nl", "amazon.se", "amazon.pl", "amazon.com.be",
+        "amazon.com.tr", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.in", "amazon.co.jp",
+        "amazon.sg", "amazon.com.au"
+      ],
+      "parameters": [
+        "ref", "ref_", "_encoding", "qid", "sr", "sprefix", "crid", "dib", "dib_tag",
+        "content-id", "spia", "linkcode", "linkid", "tag", "camp", "creative", "creativeasin",
+        "ascsubtag", "asc_campaign", "asc_refurl", "asc_source"
+      ],
+      "prefixes": ["pf_rd_", "pd_rd_"],
+      "pathSegmentPrefixes": ["ref="]
+    },
+    {
+      "name": "Instagram",
+      "hosts": ["instagram.com"],
+      "parameters": ["igsh", "igshid"]
+    },
+    {
+      "name": "TikTok",
+      "hosts": ["tiktok.com"],
+      "parameters": ["_t", "_r", "is_from_webapp", "sender_device", "is_copy_url", "web_id"]
+    },
+    {
+      "name": "Reddit",
+      "hosts": ["reddit.com"],
+      "parameters": ["share_id", "rdt", "ref_source", "ref_campaign"]
+    },
+    {
+      "name": "Facebook",
+      "hosts": ["facebook.com", "fb.watch"],
+      "parameters": ["mibextid", "rdid", "sfnsn", "__tn__", "__cft__"]
+    }
+  ]
+}

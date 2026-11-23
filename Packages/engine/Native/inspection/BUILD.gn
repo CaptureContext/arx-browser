@@ -1,0 +1,24 @@
+import("//mojo/public/tools/bindings/mojom.gni")
+
+mojom("mojom") {
+  sources = [ "inspection.mojom", "developer.mojom" ]
+}
+
+source_set("renderer") {
+  sources = [ "inspector.h", "inspector.cc", "script_runner.h", "script_runner.cc" ]
+  deps = [
+    ":mojom",
+    ":policy",
+    "//base",
+    "//content/public/renderer",
+    "//mojo/public/cpp/bindings",
+    "//third_party/blink/public:blink",
+    "//ui/accessibility",
+    "//url",
+    "//v8",
+  ]
+}
+
+source_set("policy") {
+  sources = [ "policy.h", "click_policy.h", "pointer_policy.h", "keyboard_policy.h" ]
+}

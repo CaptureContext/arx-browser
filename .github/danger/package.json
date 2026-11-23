@@ -1,0 +1,11 @@
+{
+  "name": "arx-danger",
+  "private": true,
+  "description": "Danger JS for Arx pull requests (DEV-1281). The workflow installs it with npm ci --ignore-scripts.",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "danger": "14.1.0"
+  }
+}

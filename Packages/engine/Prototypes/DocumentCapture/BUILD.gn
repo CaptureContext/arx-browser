@@ -1,0 +1,67 @@
+# Explicit prototype target. Not a dependency of chrome/browser/arx.
+import("//mojo/public/tools/bindings/mojom.gni")
+
+mojom("mojom") {
+  sources = [ "document_capture.mojom" ]
+  public_deps = [
+    "//mojo/public/mojom/base",
+    "//ui/gfx/geometry/mojom",
+  ]
+}
+
+source_set("encoding") {
+  sources = [ "budget.h", "bounded_stream.h", "png_encoding.cc", "png_encoding.h" ]
+  public_deps = [ ":mojom", "//base", "//skia" ]
+}
+
+source_set("renderer") {
+  sources = [ "budget.h", "bounded_stream.h", "resource_budget.h",
+              "record_admission.cc", "record_admission.h",
+              "document_recorder.cc", "document_recorder.h" ]
+  deps = [
+    ":mojom",
+    ":encoding",
+    "//base",
+    "//cc/paint",
+    "//components/paint_preview/common",
+    "//components/paint_preview/renderer",
+    "//content/public/renderer",
+    "//mojo/public/cpp/bindings",
+    "//skia",
+    "//third_party/blink/public:blink_headers",
+    "//third_party/blink/public/common",
+  ]
+}
+
+source_set("browser") {
+  sources = [ "budget.h", "capture_slot.h", "document_capture.cc", "document_capture.h" ]
+  public_deps = [ ":mojom", ":encoding" ]
+  deps = [
+    "//base",
+    "//components/paint_preview/browser",
+    "//components/paint_preview/common",
+    "//content/public/browser",
+    "//mojo/public/cpp/base",
+    "//mojo/public/cpp/bindings",
+    "//skia",
+    "//third_party/blink/public/common",
+  ]
+}
+
+# Compiled only when an isolated owner explicitly links the fixture. There is
+# no shipping target dependency, exported C symbol or automatic startup hook.
+source_set("fixture") {
+  sources = [ "document_capture_fixture.cc", "document_capture_fixture.h", "fixture_contract.h" ]
+  deps = [
+    ":browser",
+    "//base",
+    "//components/services/paint_preview_compositor/public/mojom",
+    "//components/viz/common",
+    "//content/public/browser",
+    "//net",
+    "//services/network/public/cpp",
+    "//services/network/public/mojom",
+    "//skia",
+    "//ui/gfx/codec",
+  ]
+}

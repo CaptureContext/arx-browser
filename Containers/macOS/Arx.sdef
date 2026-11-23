@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<!-- Arx's scripting dictionary (DEV-909): windows, spaces, profiles and tabs, with commands
+     to open a page, show, reload and close a tab, and to run JavaScript in one only while
+     Settings › Developer allows it. -->
+<dictionary title="Arx Terminology">
+	<suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+		<class name="application" code="capp" description="Arx.">
+			<cocoa class="NSApplication"/>
+			<property name="name" code="pnam" type="text" access="r" description="The name of the application."/>
+			<property name="frontmost" code="pisf" type="boolean" access="r" description="Is this the active application?">
+				<cocoa key="isActive"/>
+			</property>
+			<property name="version" code="vers" type="text" access="r" description="The version number of the application."/>
+			<element type="browser window" access="r">
+				<cocoa key="arxScriptWindows"/>
+			</element>
+			<element type="space" access="r">
+				<cocoa key="arxScriptSpaces"/>
+			</element>
+			<element type="profile" access="r">
+				<cocoa key="arxScriptProfiles"/>
+			</element>
+			<element type="tab" access="r">
+				<cocoa key="arxScriptTabs"/>
+			</element>
+		</class>
+	</suite>
+
+	<suite name="Arx Suite" code="Arxs" description="Arx's spaces, profiles and tabs.">
+		<class name="browser window" code="ArWn" plural="browser windows" description="An Arx window. Private windows aren't listed.">
+			<cocoa class="ArxScriptWindow"/>
+			<property name="id" code="ID  " type="text" access="r"><cocoa key="uniqueID"/></property>
+			<property name="space" code="ArSp" type="text" access="r" description="The name of the space it shows."><cocoa key="spaceName"/></property>
+			<property name="active tab" code="ArAT" type="tab" access="r" description="The tab in its focused pane, if any."><cocoa key="activeTab"/></property>
+			<property name="index" code="pidx" type="integer" access="r" description="Its place among Arx's windows; 1 is the front one."><cocoa key="orderIndex"/></property>
+		</class>
+
+		<class name="space" code="ArSc" plural="spaces" description="A space and the profile it uses.">
+			<cocoa class="ArxScriptSpace"/>
+			<property name="id" code="ID  " type="text" access="r"><cocoa key="uniqueID"/></property>
+			<property name="name" code="pnam" type="text" access="r"/>
+			<property name="profile" code="ArPf" type="text" access="r" description="The name of its profile."><cocoa key="profileName"/></property>
+		</class>
+
+		<class name="profile" code="ArPc" plural="profiles" description="A browsing identity with its own cookies and history.">
+			<cocoa class="ArxScriptProfile"/>
+			<property name="id" code="ID  " type="text" access="r"><cocoa key="uniqueID"/></property>
+			<property name="name" code="pnam" type="text" access="r"/>
+		</class>
+
+		<class name="tab" code="ArTb" plural="tabs" description="A Favorite, pinned tab or tab in a space. Private windows' tabs aren't listed.">
+			<cocoa class="ArxScriptTab"/>
+			<property name="id" code="ID  " type="text" access="r"><cocoa key="uniqueID"/></property>
+			<property name="title" code="ArTi" type="text" access="r"><cocoa key="title"/></property>
+			<property name="URL" code="ArUR" type="text" access="r" description="The page it shows, or its saved address while it isn't loaded."><cocoa key="address"/></property>
+			<property name="space" code="ArSp" type="text" access="r" description="The name of its space; empty for a Favorite."><cocoa key="spaceName"/></property>
+			<property name="profile" code="ArPf" type="text" access="r"><cocoa key="profileName"/></property>
+			<property name="pinned" code="ArPn" type="boolean" access="r" description="A pinned tab or Favorite."><cocoa key="isPinned"/></property>
+			<property name="active" code="ArAc" type="boolean" access="r" description="Shown in a window's focused pane."><cocoa key="isActive"/></property>
+			<responds-to command="show tab"><cocoa method="handleShowCommand:"/></responds-to>
+			<responds-to command="reload tab"><cocoa method="handleReloadCommand:"/></responds-to>
+			<responds-to command="close tab"><cocoa method="handleCloseCommand:"/></responds-to>
+			<responds-to command="execute"><cocoa method="handleExecuteCommand:"/></responds-to>
+		</class>
+
+		<command name="open page" code="ArxsOpnP" description="Opens a web page (http or https) in Arx.">
+			<cocoa class="ArxOpenPageScriptCommand"/>
+			<direct-parameter type="text" description="The page's address."/>
+			<parameter name="in space" code="ArSp" type="text" optional="yes" description="A space's name or ID."><cocoa key="space"/></parameter>
+			<parameter name="in profile" code="ArPf" type="text" optional="yes" description="A profile's name or ID; its most recent space."><cocoa key="profile"/></parameter>
+			<parameter name="in little arx" code="ArLA" type="boolean" optional="yes" description="Open it in Little Arx."><cocoa key="little"/></parameter>
+		</command>
+
+		<command name="switch space" code="ArxsSwSp" description="Shows a space in Arx's main window.">
+			<cocoa class="ArxSwitchSpaceScriptCommand"/>
+			<direct-parameter type="text" description="The space's name or ID."/>
+		</command>
+
+		<command name="show tab" code="ArxsShTb" description="Brings Arx forward with the tab, in its space.">
+			<direct-parameter type="tab"/>
+		</command>
+		<command name="reload tab" code="ArxsRlTb" description="Reloads the tab's page.">
+			<direct-parameter type="tab"/>
+		</command>
+		<command name="close tab" code="ArxsClTb" description="Closes a tab in a space into the Tab Archive. Pinned tabs and Favorites stay.">
+			<direct-parameter type="tab"/>
+		</command>
+		<command name="execute" code="ArxsExJS" description="Runs JavaScript in the tab's page and returns its result as JSON text. Only with developer mode and Settings › Developer › Allow JavaScript from AppleScript on; never in private windows.">
+			<direct-parameter type="tab"/>
+			<parameter name="javascript" code="ArJS" type="text" description="The script, run as the body of an async function: what it returns, awaited, is the result.">
+				<cocoa key="javascript"/>
+			</parameter>
+			<result type="text"/>
+		</command>
+	</suite>
+</dictionary>

@@ -1,0 +1,14 @@
+version: '4.0'
+indentor: "\t"
+indent-size: 1
+access-level: public
+group-by-catalog: false
+colors:
+  group-by-folders: false
+  split-by-key-path: true
+images:
+  group-by-catalog: false
+  split-by-key-path: true
+xcstrings:
+  group-by-catalog: true
+  split-by-key-path: true

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swift Style"
+  short_description: "Apply opinionated Swift formatting conventions"
+  default_prompt: "Use $swift-style when writing or reviewing this Swift code."

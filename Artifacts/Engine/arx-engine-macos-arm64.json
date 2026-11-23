@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "identity": {
+    "sources": "386cc0311bebe08d93f9a378ae61a189b94602fee082f1d3989f80b1cf6ca186",
+    "architecture": "arm64"
+  },
+  "chromium": "157.0.8103.78",
+  "framework": "Arx Framework.framework",
+  "archive": "arx-engine-macos-arm64.tar.gz",
+  "sha256": "80352189607531ca8284d75d504b8a1799c6e37faec258b13775c190d7e57074",
+  "bytes": 160427886,
+  "minimum_macos": "27.0",
+  "build": {
+    "xcode": "Xcode 27.1\nBuild version 27A9275",
+    "gn_args_sha256": "544b50776725df5c0f46c5d1a6f782eb24c94042f2ec9070bc5c6aafe93e2d4f"
+  },
+  "url": "https://github.com/capturecontext/arx-browser-engine/releases/download/engine-386cc0311bebe08d/arx-engine-macos-arm64.tar.gz"
+}

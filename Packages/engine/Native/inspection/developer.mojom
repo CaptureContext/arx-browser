@@ -1,0 +1,32 @@
+module arx.developer.mojom;
+
+// ABI34 (DEV-668). Agent scripts in Arx's developer world, never the page's
+// main world. Blink's developer-world hooks keep cookies, password, card and
+// one-time-code values and stored credentials out of that world.
+enum ScriptStatus {
+  kOK,
+  // The script threw or rejected; result is {"name", "message"}.
+  kException,
+  // The script didn't compile; result is {"name", "message"}.
+  kSyntax,
+  // The serialized value is larger than maximum_bytes.
+  kLimit,
+  // No result: the document went away or script can't run here.
+  kFailed,
+  kUnavailable,
+  kInvalid,
+};
+
+interface ScriptRunner {
+  // Runs source as the body of an async function in the frame's developer
+  // world and awaits it. On kOK, result is JSON: {"type":"json","value":<JSON
+  // text>}, {"type":"undefined"} or {"type":"unserializable","description"}.
+  Evaluate(string source, uint32 maximum_bytes)
+      => (ScriptStatus status, string result);
+
+  // ABI57 (DEV-996). The same, in Arx's translation world: only the app's
+  // page translation scripts, with the developer world's credential hooks.
+  // The browser also sends these for private pages.
+  EvaluateTranslation(string source, uint32 maximum_bytes)
+      => (ScriptStatus status, string result);
+};

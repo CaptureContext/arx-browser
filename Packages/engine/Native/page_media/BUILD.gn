@@ -1,0 +1,19 @@
+import("//mojo/public/tools/bindings/mojom.gni")
+
+# DEV-1144. Copied to //components/arx_page_media by page_media_overlay.py.
+mojom("mojom") {
+  sources = [ "page_media.mojom" ]
+}
+
+source_set("renderer") {
+  sources = [ "page_media_agent.h", "page_media_agent.cc" ]
+  deps = [
+    ":mojom",
+    "//base",
+    "//content/public/renderer",
+    "//gin",
+    "//mojo/public/cpp/bindings",
+    "//third_party/blink/public:blink",
+    "//v8",
+  ]
+}

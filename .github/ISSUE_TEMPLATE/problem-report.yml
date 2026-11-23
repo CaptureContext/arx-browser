@@ -1,0 +1,38 @@
+# Arx's Help › Report a Problem opens this form with the fields below filled in (DEV-887).
+# GitHubIssue in Packages/services/Sources/DiagnosticsClient fills them by id; keep the ids.
+name: Problem report
+description: Something in Arx doesn't work as it should.
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Don't include web addresses, page content or anything private unless the problem needs it. This issue is public.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what Arx did instead.
+    validations:
+      required: true
+  - type: input
+    id: arx-version
+    attributes:
+      label: Arx version
+      description: Arx menu › About Arx.
+    validations:
+      required: true
+  - type: input
+    id: engine-version
+    attributes:
+      label: Engine version
+      description: Helium and Chromium.
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+  - type: textarea
+    id: attachment
+    attributes:
+      label: Diagnostics
+      description: Arx saved a report file with your Mac's model and recent crash reports, and selected it in Finder. Drag it here to attach it, or leave this empty.

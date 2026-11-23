@@ -1,0 +1,28 @@
+{
+  "chromium": "157.0.8103.78",
+  "source": "Pinned Chromium source prepared from engine.lock.json by Helium",
+  "files": [
+    {
+      "source": "base/allocator/early_zone_registration_apple.cc",
+      "path": "base/allocator/early_zone_registration_apple.cc",
+      "sha256": "965e865d2c998fbd4ceb0a26739c0009f31945eecb0d849e1d04039942df2fa3"
+    },
+    {
+      "source": "base/allocator/early_zone_registration_apple.h",
+      "path": "base/allocator/early_zone_registration_apple.h",
+      "sha256": "62ac65514bc2dc23d700efeb2b210d81f7f95b5b01734c8bfe02cc204abbc32b"
+    },
+    {
+      "source": "base/allocator/partition_allocator/src/partition_alloc/shim/early_zone_registration_utils_apple.h",
+      "path": "partition_alloc/shim/early_zone_registration_utils_apple.h",
+      "sha256": "98275fd8d8801dcf686fb56cd1cfe9118a3b78ede20ad1c62f27e73a4c7eb893"
+    },
+    {
+      "source": "LICENSE",
+      "path": "LICENSE",
+      "sha256": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b"
+    }
+  ],
+  "helium_macos_revision": "da5fcc2c78e760e4383fe4d15f230158f3dbe9a4",
+  "helium_revision": "a2d96a753a3e9f10e10170615f8eaed6b159e85b"
+}

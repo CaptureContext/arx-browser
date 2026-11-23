@@ -1,0 +1,24 @@
+[submodule "Forks/cocoa-aliases"]
+	path = Forks/cocoa-aliases
+	url = https://github.com/capturecontext/cocoa-aliases.git
+[submodule "Forks/composable-architecture-extensions"]
+	path = Forks/composable-architecture-extensions
+	url = https://github.com/capturecontext/composable-architecture-extensions.git
+[submodule "Forks/swift-cocoa-extensions"]
+	path = Forks/swift-cocoa-extensions
+	url = https://github.com/capturecontext/swift-cocoa-extensions.git
+[submodule "Forks/swift-composable-architecture"]
+	path = Forks/swift-composable-architecture
+	url = https://github.com/maximkrouk/swift-composable-architecture.git
+[submodule "Forks/swift-macro-toolkit"]
+	path = Forks/swift-macro-toolkit
+	url = https://github.com/maximkrouk/swift-macro-toolkit.git
+[submodule "Forks/swift-navigation"]
+	path = Forks/swift-navigation
+	url = https://github.com/maximkrouk/swift-navigation.git
+[submodule "Forks/swift-syntax"]
+	path = Forks/swift-syntax
+	url = https://github.com/swiftlang/swift-syntax.git
+[submodule "Forks/package-resources-cli"]
+	path = Forks/package-resources-cli
+	url = https://github.com/capturecontext/package-resources-cli.git

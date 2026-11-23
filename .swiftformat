@@ -1,0 +1,15 @@
+# Advisory style checks (`make style` runs `swiftformat --lint`; nothing is rewritten).
+# Only rules that state what the swift-style guide states, and none that wraps or re-indents,
+# so code is never pushed into formatter defaults. See Packages/tools/README.md.
+#
+# trailingSpace, linebreakAtEndOfFile  fundamentals › Indentation (.editorconfig)
+# blockComments                        runtime-practices › Comments: use // or ///, avoid /* */
+# typeSugar                            declarations › General rules: Value?, [Value], [Key: Value]
+# hoistPatternLet                      control-flow › Switch: case let .x(value), not case .x(let value)
+# redundantGet                         declarations › General rules: omit get from read-only properties
+
+--swift-version 6.4
+--exclude Forks,.build,build,Packages/extensions/Sources/Files/Files.swift
+--rules trailingSpace,linebreakAtEndOfFile,blockComments,typeSugar,hoistPatternLet,redundantGet
+--trim-whitespace always
+--pattern-let hoist

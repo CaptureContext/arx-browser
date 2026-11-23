@@ -1,0 +1,28 @@
+module arx.page_media.mojom;
+
+// DEV-1144. The page media bridge: a script the app supplies runs in the main
+// world of a bridged origin's top-level document at document start, before the
+// page's own scripts, and exchanges JSON text messages with the app. FairPlay
+// in Chromium tabs uses it: the script answers the page's EME calls and its
+// media element, and the app plays the stream natively.
+
+// Renderer side, one per outermost main frame. The browser calls it.
+interface PageMediaAgent {
+  // Sent before every cross-document commit in the frame: the next document
+  // whose serialized origin is `origin` runs `script` once, when its document
+  // element is created. An empty script prepares nothing. The script is an
+  // expression evaluating to `function (send) { ...; return receive; }`:
+  // `send(text)` posts a message to the app, `receive(text)` takes the app's.
+  Prepare(string origin, string script);
+
+  // A message from the app for the document that runs the script. Dropped when
+  // no script runs in the frame's current document.
+  Deliver(string message);
+};
+
+// Browser side, one per document that runs the script, bound by the renderer
+// once the script first sends. The browser checks the frame is still the
+// page's primary main frame with a bridged origin before passing a message on.
+interface PageMediaHost {
+  Send(string message);
+};

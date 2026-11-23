@@ -1,0 +1,86 @@
+name: Checks
+# Pull requests and pushes to main on GitHub's hosted macOS runner (DEV-1281), free for a public
+# repository: make check, make test, the unsigned app with the released engine, and make style's
+# advisory warnings. A pull request from a fork runs here with a read-only token and no secrets;
+# every workflow runs on GitHub's machines. See DEVELOPMENT.md › Public CI.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  hosted-macos:
+    # Branch rules require checks by this name.
+    name: hosted-macos
+    # The hosted macOS 27 image is `xcode-27` (actions/runner-images, public preview in Nov 2026):
+    # arm64, Xcode 27.1 by default with 27.0 and 27.2 beside it. To move to another image, change
+    # this one line. The first step refuses to go on anywhere but a GitHub-hosted runner, in case
+    # a self-hosted machine is ever registered with the same label.
+    runs-on: xcode-27
+    timeout-minutes: 180
+    env:
+      ENGINE_ARCH: arm64
+    steps:
+      - name: Refuse anything but a GitHub-hosted runner
+        if: runner.environment != 'github-hosted'
+        run: |
+          echo "::error::Checks run pull requests' code, so they only run on GitHub-hosted runners. Remove the xcode-27 label from any self-hosted runner."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Show the toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          sw_vers
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+      - name: Restore SwiftPM's download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/org.swift.swiftpm
+          key: swiftpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Package.resolved', 'Packages/*/Package.resolved') }}
+          restore-keys: swiftpm-${{ runner.os }}-${{ runner.arch }}-
+      - name: Generate workspace
+        run: make bootstrap
+      - name: Check packages, documentation and generation
+        run: make check
+      - name: Run the tests
+        run: make test
+      - name: Restore the engine cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # make engine-fetch checks the archive's checksum, size and fingerprint before using it.
+          path: .build/engine/prebuilt
+          key: engine-${{ runner.arch }}-${{ hashFiles('Packages/engine/engine.lock.json', 'Artifacts/Engine/*.json') }}
+      - name: Fetch and validate the released arm64 engine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: make engine-fetch engine-validate
+      - name: Build the unsigned app with the engine
+        run: make build-app-runtime
+      - name: Style (advisory)
+        # make style always exits 0 and prints GitHub annotations with --github (DEV-1280).
+        continue-on-error: true
+        run: |
+          if make -n style > /dev/null 2>&1; then
+            make style ARGS=--github
+          else
+            echo "::notice::make style isn't in this checkout yet."
+          fi
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: checks-logs-${{ github.run_number }}
+          path: build/logs/
+          if-no-files-found: ignore
+          retention-days: 14

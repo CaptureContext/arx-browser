@@ -1,0 +1,14 @@
+// DEV-1193. Copied to //third_party/blink/public/mojom/arx/ by
+// browser_scheme_link_overlay.py and listed in mojom_platform, so Blink core
+// gets the blink variant without a new dependency.
+module blink.mojom;
+
+import "url/mojom/url.mojom";
+
+// Browser side, bound per frame through the BrowserInterfaceBroker. Blink
+// refuses a web page's chrome:// link ("Not allowed to load local resource"),
+// so the browser never sees it; while the frame has the person's activation,
+// the renderer reports it here instead. The navigation stays refused.
+interface ArxBrowserSchemeLinkHost {
+  ReportRefusedLink(url.mojom.Url url);
+};

@@ -1,0 +1,49 @@
+// Original Arx prototype. Not exposed by the shipped engine ABI.
+module arx.document.mojom;
+
+import "mojo/public/mojom/base/big_buffer.mojom";
+import "mojo/public/mojom/base/unguessable_token.mojom";
+import "ui/gfx/geometry/mojom/geometry.mojom";
+
+enum Status {
+  kSuccess,
+  kUnavailable,
+  kUnsupported,
+  kChanged,
+  kLimit,
+  kFailed,
+  kCancelled,
+  kTimeout,
+  kBusy,
+};
+
+// Blink layout coordinates, including negative document overflow. No CSS-size
+// round trip, viewport resizing, scroll command or device emulation is used.
+struct Geometry {
+  mojo_base.mojom.UnguessableToken document;
+  gfx.mojom.Rect document_rect;
+  gfx.mojom.Rect visible_rect;
+  gfx.mojom.PointF scroll;
+  double zoom_level;
+  float page_scale;
+  int32 focused_node;
+};
+
+struct Limits {
+  uint32 maximum_dimension;
+  uint64 maximum_pixels;
+  uint64 maximum_record_bytes;
+  uint64 maximum_record_ops;
+  uint64 maximum_decoded_image_bytes;
+  uint64 maximum_serialized_bytes;
+  uint64 maximum_png_bytes;
+  uint32 timeout_ms;
+};
+
+// Single-document experiment. Any child frame and non-default pinch zoom are
+// rejected. The browser must revalidate Geometry after composition as well.
+interface DocumentRecorder {
+  Inspect() => (Geometry? geometry);
+  Record(Geometry expected, Limits limits) =>
+      (Status status, mojo_base.mojom.BigBuffer? recording);
+};

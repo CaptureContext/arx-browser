@@ -1,0 +1,37 @@
+# Advisory style checks (`make style`). Every rule comes from the swift-style guide; see
+# Packages/tools/README.md for where each one comes from and the rules left out on purpose.
+# Only production code: the guide asks for explicit access control there, not in tests,
+# scripts or manifests.
+only_rules:
+  # declarations › General rules: "Specify access control in production code".
+  - explicit_acl
+  # declarations › Declaration structure: attributes, access modifier, override, static/final.
+  - modifier_order
+
+included:
+  - Containers
+  - Packages
+  - Previews
+  - Sources
+
+excluded:
+  - .build
+  - build
+  - Forks
+  - Packages/*/Package.swift
+  - Packages/*/Tests
+  - Packages/engine/Prototypes
+  - Packages/extensions/Sources/Files/Files.swift
+  - Previews/*/Tests
+
+# Only the modifiers the guide orders are compared; the others may sit anywhere.
+modifier_order:
+  severity: warning
+  preferred_modifier_order:
+    - acl
+    - override
+    - final
+    - typeMethods
+
+explicit_acl:
+  severity: warning

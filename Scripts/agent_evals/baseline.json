@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "recorded": "2026-11-18",
+  "commit": "f83ad606",
+  "listing": "core",
+  "bytesPerToken": 4,
+  "tasks": {
+    "read-article": {
+      "passed": true,
+      "status": "pass",
+      "knownIssue": null,
+      "calls": 5,
+      "polls": 0,
+      "work": 5,
+      "errors": 0,
+      "byTool": {
+        "browser_inventory": 2,
+        "browser_read": 1,
+        "browser_tabs": 1,
+        "browser_wait": 1
+      },
+      "tools": 8,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 6913,
+        "arguments": 648,
+        "results": 4250
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 1729,
+        "arguments": 162,
+        "results": 1063,
+        "total": 3966,
+        "perTurn": 2741,
+        "allTurns": 14930
+      },
+      "images": 0
+    },
+    "find-text": {
+      "passed": true,
+      "status": "pass",
+      "knownIssue": null,
+      "calls": 6,
+      "polls": 0,
+      "work": 6,
+      "errors": 0,
+      "byTool": {
+        "browser_find": 1,
+        "browser_inventory": 2,
+        "browser_more_tools": 1,
+        "browser_tabs": 1,
+        "browser_wait": 1
+      },
+      "tools": 9,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 8383,
+        "arguments": 665,
+        "results": 3975
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 2096,
+        "arguments": 167,
+        "results": 994,
+        "total": 4269,
+        "perTurn": 3047,
+        "allTurns": 19442
+      },
+      "images": 0
+    },
+    "fill-form": {
+      "passed": true,
+      "status": "pass",
+      "knownIssue": null,
+      "calls": 12,
+      "polls": 0,
+      "work": 12,
+      "errors": 2,
+      "byTool": {
+        "browser_batch": 1,
+        "browser_click": 1,
+        "browser_inspect": 3,
+        "browser_inventory": 2,
+        "browser_replace_text": 2,
+        "browser_select_value": 1,
+        "browser_tabs": 1,
+        "browser_wait": 1
+      },
+      "tools": 16,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 15447,
+        "arguments": 3707,
+        "results": 32682
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 3862,
+        "arguments": 927,
+        "results": 8171,
+        "total": 13972,
+        "perTurn": 4874,
+        "allTurns": 67586
+      },
+      "images": 0
+    },
+    "email-input": {
+      "passed": false,
+      "status": "known",
+      "knownIssue": "DEV-1060",
+      "calls": 8,
+      "polls": 0,
+      "work": 8,
+      "errors": 2,
+      "byTool": {
+        "browser_inspect": 2,
+        "browser_inventory": 2,
+        "browser_replace_text": 1,
+        "browser_tabs": 1,
+        "browser_type": 1,
+        "browser_wait": 1
+      },
+      "tools": 16,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 15447,
+        "arguments": 1454,
+        "results": 17780
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 3862,
+        "arguments": 364,
+        "results": 4445,
+        "total": 9683,
+        "perTurn": 4874,
+        "allTurns": 43801
+      },
+      "images": 0
+    },
+    "compare-tabs": {
+      "passed": true,
+      "status": "pass",
+      "knownIssue": null,
+      "calls": 24,
+      "polls": 14,
+      "work": 10,
+      "errors": 0,
+      "byTool": {
+        "browser_inventory": 18,
+        "browser_read": 2,
+        "browser_tabs": 2,
+        "browser_wait": 2
+      },
+      "tools": 8,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 6913,
+        "arguments": 1490,
+        "results": 35152
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 1729,
+        "arguments": 373,
+        "results": 8788,
+        "total": 11902,
+        "perTurn": 2741,
+        "allTurns": 74945
+      },
+      "images": 0
+    },
+    "needs-approval": {
+      "passed": true,
+      "status": "pass",
+      "knownIssue": null,
+      "calls": 0,
+      "polls": 0,
+      "work": 0,
+      "errors": 0,
+      "byTool": {},
+      "tools": 8,
+      "bytes": {
+        "instructions": 4048,
+        "descriptions": 6913,
+        "arguments": 0,
+        "results": 0
+      },
+      "tokens": {
+        "instructions": 1012,
+        "descriptions": 1729,
+        "arguments": 0,
+        "results": 0,
+        "total": 2741,
+        "perTurn": 2741,
+        "allTurns": 2741
+      },
+      "images": 0
+    }
+  }
+}
